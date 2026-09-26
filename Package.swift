@@ -17,7 +17,7 @@ let package = Package(
             dependencies: ["LiveSubAudio", "LiveSubBackend", "LiveSubOverlay", "LiveSubSubtitles"],
             path: "app/LiveSub",
             exclude: ["Audio", "Backend", "Overlay", "Subtitles"],
-            sources: ["App/AppController.swift", "App/LiveSubApp.swift", "MainWindow/TranscriptView.swift"]
+            sources: ["App/AppController.swift", "App/LiveSubApp.swift", "App/TerminologySettingsView.swift", "MainWindow/TranscriptView.swift"]
         ),
         .target(
             name: "LiveSubAudio",
@@ -25,6 +25,7 @@ let package = Package(
         ),
         .target(
             name: "LiveSubOverlay",
+            dependencies: ["LiveSubSubtitles"],
             path: "app/LiveSub/Overlay"
         ),
         .target(

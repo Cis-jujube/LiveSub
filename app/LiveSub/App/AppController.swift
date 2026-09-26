@@ -21,6 +21,7 @@ public enum TranslationDirection: String, CaseIterable, Identifiable {
 @MainActor
 public final class AppController: ObservableObject {
     @Published public private(set) var audioSource: AudioSource
+    @Published public private(set) var subtitleDisplayMode: SubtitleDisplayMode
     @Published public private(set) var direction: TranslationDirection
     @Published public private(set) var phase = "idle"
     @Published public private(set) var status = "就绪 · 尚未开始录音"
@@ -44,15 +45,18 @@ public final class AppController: ObservableObject {
 
     public init() {
         let settings = UserDefaults.standard
+        subtitleDisplayMode = SubtitleDisplayMode.load(from: settings)
         audioSource = AudioSource(rawValue: settings.string(forKey: "livesub.audioSource") ?? "") ?? .microphone
         direction = TranslationDirection(rawValue: settings.string(forKey: "livesub.direction") ?? "") ?? .englishToChinese
+        overlay.setDisplayMode(subtitleDisplayMode)
         backend.onRawEvent = { [weak self] data in
             guard let self else { return }
             if self.store.apply(eventJSON: data), let pair = self.store.latestCaption {
                 self.overlay.update(OverlayCaption(
                     sourceText: pair.sourceText,
                     translatedSourceText: pair.translatedSourceText,
-                    targetText: pair.targetText
+                    targetText: pair.targetText,
+                    translationState: pair.translationState
                 ))
             }
         }
@@ -176,6 +180,13 @@ public final class AppController: ObservableObject {
         if phase != "error" { await resume() }
     }
 
+    public func selectSubtitleDisplayMode(_ mode: SubtitleDisplayMode) {
+        guard subtitleDisplayMode != mode else { return }
+        subtitleDisplayMode = mode
+        mode.save()
+        overlay.setDisplayMode(mode)
+    }
+
     public func toggleOverlay() {
         if overlayVisible {
             overlay.hide()
@@ -186,7 +197,8 @@ public final class AppController: ObservableObject {
                 overlay.update(OverlayCaption(
                     sourceText: pair.sourceText,
                     translatedSourceText: pair.translatedSourceText,
-                    targetText: pair.targetText
+                    targetText: pair.targetText,
+                    translationState: pair.translationState
                 ))
             }
             overlay.show()

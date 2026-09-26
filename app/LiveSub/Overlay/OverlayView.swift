@@ -1,14 +1,18 @@
 import SwiftUI
+import LiveSubSubtitles
 
 public struct OverlayCaption: Equatable, Sendable {
     public let sourceText: String
     public let translatedSourceText: String?
     public let targetText: String?
 
-    public init(sourceText: String, translatedSourceText: String? = nil, targetText: String? = nil) {
+    public let translationState: TranslationState
+
+    public init(sourceText: String, translatedSourceText: String? = nil, targetText: String? = nil, translationState: TranslationState = .pending) {
         self.sourceText = sourceText
         self.translatedSourceText = translatedSourceText
         self.targetText = targetText
+        self.translationState = translationState
     }
 
     /// Never put a target under a newer, unpaired source revision.
@@ -20,6 +24,16 @@ public struct OverlayCaption: Equatable, Sendable {
         hasPairedTranslation ? targetText : nil
     }
 
+    public func sourceForDisplay(in mode: SubtitleDisplayMode) -> String? {
+        mode.sourceForDisplay(visibleSourceText)
+    }
+
+    public func targetForDisplay(in mode: SubtitleDisplayMode) -> String? {
+        if translationState == .failed { return "翻译失败" }
+        if let visibleTargetText { return visibleTargetText }
+        return mode == .translationOnly ? "翻译中…" : nil
+    }
+
     private var hasPairedTranslation: Bool {
         translatedSourceText?.isEmpty == false && targetText?.isEmpty == false
     }
@@ -27,6 +41,7 @@ public struct OverlayCaption: Equatable, Sendable {
 
 @MainActor
 final class OverlayPresentation: ObservableObject {
+    @Published var displayMode: SubtitleDisplayMode = .bilingual
     @Published var caption: OverlayCaption?
     @Published var textOpacity = 1.0
     @Published var isAdjusting = false
@@ -53,17 +68,20 @@ struct OverlayView: View {
             }
 
             VStack(spacing: 7) {
-                Text(presentation.caption?.visibleSourceText ?? " ")
-                    .font(.system(size: 24, weight: .medium))
-                    .lineLimit(2)
-                    .truncationMode(.tail)
-                    .accessibilityLabel("Original subtitle")
+                if let source = presentation.caption?.sourceForDisplay(in: presentation.displayMode) {
+                    Text(source)
+                        .font(.system(size: 24, weight: .medium))
+                        .lineLimit(2)
+                        .truncationMode(.tail)
+                        .accessibilityLabel("Original subtitle")
+                }
 
-                Text(presentation.caption?.visibleTargetText ?? " ")
+                let target = presentation.caption?.targetForDisplay(in: presentation.displayMode)
+                Text(target ?? (presentation.isAdjusting ? "字幕位置预览" : " "))
                     .font(.system(size: 28, weight: .semibold))
                     .lineLimit(2)
                     .truncationMode(.tail)
-                    .opacity(presentation.caption?.visibleTargetText == nil ? 0 : 1)
+                    .opacity(target == nil && !presentation.isAdjusting ? 0 : 1)
                     .accessibilityLabel("Translated subtitle")
             }
             .foregroundStyle(.white)

@@ -32,7 +32,8 @@ public enum OverlayPlacementGeometry {
     public static func resolve(
         saved: OverlayPlacement?,
         screens: [OverlayDisplay],
-        preferredDisplayID: UInt32?
+        preferredDisplayID: UInt32?,
+        height requestedHeight: CGFloat = panelHeight
     ) -> CGRect? {
         guard let screen = screens.first(where: { $0.id == saved?.displayID })
             ?? screens.first(where: { $0.id == preferredDisplayID })
@@ -44,7 +45,7 @@ public enum OverlayPlacementGeometry {
         let width = saved == nil
             ? min(1_200, visible.width * widthFraction)
             : min(1_200, max(min(240, visible.width), visible.width * widthFraction))
-        let height = min(panelHeight, visible.height)
+        let height = min(max(1, requestedHeight.isFinite ? requestedHeight : panelHeight), visible.height)
         let centerFraction = saved.map { bounded($0.horizontalFraction, min: 0, max: 1) } ?? 0.5
         let desiredX = visible.minX + visible.width * centerFraction - width / 2
         let desiredY = saved.map {

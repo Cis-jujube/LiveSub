@@ -1,0 +1,120 @@
+{
+  "audio_sha256": "1299241941ca3a281bde067016a07dc16a3e0095ed573e8c6486c0e3502a95fc",
+  "audio_duration_ms": 10010.06,
+  "source_language": "en",
+  "target_language": "zh",
+  "frame_samples": 2560,
+  "frames_sent": 63,
+  "unauthorized_rejected": true,
+  "failure_codes": [],
+  "asr_model_repo": "netease-youdao/Confucius4-R2T2-GGUF",
+  "asr_model_revision": "ce1e3170e8a082d3b564ca2982df3e324569cda6",
+  "asr_processor_repo": "netease-youdao/Confucius4-R2T2",
+  "asr_processor_revision": "c2c4149f42f9f4f9a8526f4279089cbdf39db1f8",
+  "translation_model_repo": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+  "translation_model_revision": "50d427756c6b1b2fe0c0a10f67fbda1fc8e82c1b",
+  "model_assets_verified": true,
+  "model_verification_ms": 1283.44,
+  "protocol_version": 1,
+  "unauthorized_rejection_kind": "http_403",
+  "max_send_lateness_ms": 2.16,
+  "backend_exit_code": -15,
+  "extra_backend_stdout_lines": 0,
+  "state_sequence": [
+    "loading",
+    "listening",
+    "stopping",
+    "idle"
+  ],
+  "error_codes": [],
+  "subtitle_events": 47,
+  "unique_segment_ids": 5,
+  "audio_overflow_errors": 0,
+  "translation_overflow_errors": 0,
+  "frame_rejected_errors": 0,
+  "server_queue_depth_exposed": false,
+  "target_latency_scope": "Paced WAV audio-start to backend WebSocket IPC reception in this smoke client; excludes native capture and UI rendering and does not measure end-of-speech. Source-final waits start at first observed matching final source revision, not at the backend's internal ASR completion. Usable targets are nonblank preview/final translations with a nonblank translated source; useful previews also match the current source text and revision.",
+  "audio_start_to_first_usable_target_ms": 638.06,
+  "audio_start_to_first_current_pair_preview_ms": 638.06,
+  "useful_preview_events": 2,
+  "useful_previews": 2,
+  "segment_target_timings": [
+    {
+      "segment_index": 1,
+      "first_source_observed_after_audio_start_ms": 275.18,
+      "first_usable_target_after_audio_start_ms": 638.06,
+      "first_usable_target_after_source_observed_ms": 362.88
+    },
+    {
+      "segment_index": 2,
+      "first_source_observed_after_audio_start_ms": 2542.07,
+      "first_usable_target_after_audio_start_ms": 3047.12,
+      "first_usable_target_after_source_observed_ms": 505.05
+    },
+    {
+      "segment_index": 3,
+      "first_source_observed_after_audio_start_ms": 4917.15,
+      "first_usable_target_after_audio_start_ms": 5428.56,
+      "first_usable_target_after_source_observed_ms": 511.41
+    },
+    {
+      "segment_index": 4,
+      "first_source_observed_after_audio_start_ms": 7482.99,
+      "first_usable_target_after_audio_start_ms": 7833.98,
+      "first_usable_target_after_source_observed_ms": 350.99
+    },
+    {
+      "segment_index": 5,
+      "first_source_observed_after_audio_start_ms": 9759.14,
+      "first_usable_target_after_audio_start_ms": 10316.12,
+      "first_usable_target_after_source_observed_ms": 556.98
+    }
+  ],
+  "source_final_to_final_target_waits": [
+    {
+      "segment_index": 1,
+      "source_revision": 7,
+      "source_final_observed_to_final_target_ms": 572.3
+    },
+    {
+      "segment_index": 2,
+      "source_revision": 8,
+      "source_final_observed_to_final_target_ms": 507.07
+    },
+    {
+      "segment_index": 3,
+      "source_revision": 8,
+      "source_final_observed_to_final_target_ms": 621.45
+    },
+    {
+      "segment_index": 4,
+      "source_revision": 8,
+      "source_final_observed_to_final_target_ms": 661.67
+    },
+    {
+      "segment_index": 5,
+      "source_revision": 2,
+      "source_final_observed_to_final_target_ms": 173.17
+    }
+  ],
+  "start_to_listening_ms": 3409.86,
+  "stop_to_idle_ms": 303.86,
+  "audio_start_to_first_subtitle_ms": 275.18,
+  "final_translated_segments": 5,
+  "duplicate_final_segment_ids": 0,
+  "final_translations_retained_at_idle": true,
+  "final_translations_received_after_stop": 2,
+  "all_final_pairs_match_source_revision": true,
+  "final_translation_after_segment_end_ms": [
+    707.98,
+    615.73,
+    756.84,
+    803.57,
+    306.12
+  ],
+  "last_final_segment_near_audio_end": true,
+  "expected_tail_substring_found": true,
+  "target_script_present": true,
+  "post_final_state_regressions": 0,
+  "passed": true
+}

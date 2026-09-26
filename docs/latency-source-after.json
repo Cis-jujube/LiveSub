@@ -1,0 +1,10 @@
+{
+  "stage": "after latency changes",
+  "sha256": {
+    "backend/livesub/session.py": "e640af61ee5a9b8e663f989c4e9bad60beb33745caf948ff7d998f4284b9ad3f",
+    "backend/livesub/translation/mlx_engine.py": "839f930895828cb9ceaf459c206141fb5c4f22ab9b82f83ba11936db7bd5f846",
+    "backend/livesub/translation/scheduler.py": "64216764e65c4ae9f3b71c58ac9706b7c83ab94b078b0580a2ef708ae57c1590",
+    "backend/livesub/asr/r2t2.py": "74e25c6b0ab874810f3b7c50004a277e300e911b2e7f5538eb7787963f3420b5",
+    "script/smoke_server.py": "c29a5e4b14ecc5c23837b711f9dfcec6a6681d42796bce334566e2ddbba43698"
+  }
+}

@@ -5,10 +5,14 @@ import Foundation
 @MainActor
 public final class SubtitleStore: ObservableObject {
     @Published public private(set) var segments: [SubtitleSegment] = []
+    @Published public private(set) var paragraphs: [TranscriptParagraph] = []
+    @Published public private(set) var contentRevision: UInt64 = 0
     @Published public private(set) var activeSessionID: String?
     @Published public private(set) var activeGeneration: UInt64 = 0
 
     private var index: [String: Int] = [:]
+    private var paragraphMembers: [[Int]] = []
+    private var paragraphForSegment: [Int] = []
     private var sourceSnapshots: [String: [UInt64: String]] = [:]
 
     public init() {}
@@ -16,6 +20,10 @@ public final class SubtitleStore: ObservableObject {
     public func beginSession(_ sessionID: String) {
         guard !sessionID.isEmpty else { return }
         segments = []
+        paragraphs = []
+        paragraphMembers = []
+        paragraphForSegment = []
+        contentRevision &+= 1
         index = [:]
         sourceSnapshots = [:]
         activeSessionID = sessionID
@@ -87,17 +95,31 @@ public final class SubtitleStore: ObservableObject {
         if let position = index[key] {
             let existing = segments[position]
             guard accepted.translatedSourceRevision >= existing.translatedSourceRevision ||
-                    accepted.translationState == .pending else { return false }
+                    (accepted.translationState == .pending || accepted.translationState == .failed) else { return false }
             if existing.translationState == .final && accepted.translationState != .final { return false }
             if existing.translationState == .final && accepted.targetText != existing.targetText { return false }
             segments[position] = accepted
+            let paragraphIndex = paragraphForSegment[position]
+            paragraphs[paragraphIndex] = TranscriptParagraph(segments: paragraphMembers[paragraphIndex].map { segments[$0] })
         } else {
-            index[key] = segments.count
+            let position = segments.count
+            let previous = paragraphMembers.last?.map { segments[$0] } ?? []
+            let newParagraph = TranscriptParagraph.shouldStartNew(after: previous, incoming: accepted)
+            index[key] = position
             segments.append(accepted)
+            if newParagraph {
+                paragraphMembers.append([position])
+                paragraphs.append(TranscriptParagraph(segments: [accepted]))
+            } else {
+                paragraphMembers[paragraphMembers.count - 1].append(position)
+                paragraphs[paragraphs.count - 1] = TranscriptParagraph(segments: paragraphMembers.last!.map { segments[$0] })
+            }
+            paragraphForSegment.append(paragraphMembers.count - 1)
         }
         sourceSnapshots[key] = snapshots
         if activeSessionID == nil { activeSessionID = incoming.sessionId }
         if incoming.generation > activeGeneration { activeGeneration = incoming.generation }
+        contentRevision &+= 1
         return true
     }
 
@@ -108,21 +130,19 @@ public final class SubtitleStore: ObservableObject {
         return CaptionPair(
             sourceText: latest.sourceText,
             translatedSourceText: paired ? latest.translatedSourceText : nil,
-            targetText: paired ? latest.targetText : nil
+            targetText: paired ? latest.targetText : nil,
+            translationState: latest.translationState
         )
     }
 
     public var exportMarkdown: String {
-        var result = "# LiveSub session\n\n"
-        for segment in segments {
-            result += "- **\(segment.sourceLanguage.uppercased())** \(segment.sourceText)\n"
-            result += "  - **\(segment.targetLanguage.uppercased())** \(segment.targetText.isEmpty ? "[翻译未完成]" : segment.targetText)\n"
-        }
-        return result
+        "# LiveSub session\n\n" + paragraphs.map {
+            "**\($0.sourceLanguage.uppercased())**\n\n\($0.sourceText)\n\n**\($0.targetLanguage.uppercased())**\n\n\($0.targetText)"
+        }.joined(separator: "\n\n---\n\n") + (paragraphs.isEmpty ? "" : "\n")
     }
 
     public var exportText: String {
-        segments.map { "\($0.sourceText)\n\($0.targetText.isEmpty ? "[翻译未完成]" : $0.targetText)" }
-            .joined(separator: "\n\n") + (segments.isEmpty ? "" : "\n")
+        paragraphs.map { "\($0.sourceText)\n\($0.targetText)" }
+            .joined(separator: "\n\n") + (paragraphs.isEmpty ? "" : "\n")
     }
 }

@@ -1,0 +1,37 @@
+{
+  "audio_sha256": "1299241941ca3a281bde067016a07dc16a3e0095ed573e8c6486c0e3502a95fc",
+  "language": "English",
+  "audio_seconds": 10.01,
+  "asr_load_ms": 3244.3,
+  "translation_load_ms": 325.79,
+  "asr_compute_seconds": 7.048,
+  "asr_rtf": 0.704,
+  "asr_mean_push_ms": 110.23,
+  "asr_max_push_ms": 166.39,
+  "max_feed_lateness_ms": 39.46,
+  "max_translation_queue_depth": 1,
+  "queued_final_segments": 2,
+  "translated_segments": 2,
+  "failures": [],
+  "max_rss_bytes_macos": 5270470656,
+  "translations": [
+    {
+      "segment_id": "1",
+      "source_revision": 1,
+      "source_end_ms": 6000,
+      "translation_compute_ms": 992.99,
+      "after_segment_end_ms": 1194.8,
+      "source_text": "An AI agent can use tools. The language model has a context window. Each input token",
+      "target_text": "一个AI Agent可以使用工具。语言模型具有上下文窗口。每个输入token"
+    },
+    {
+      "segment_id": "2",
+      "source_revision": 1,
+      "source_end_ms": 10010,
+      "translation_compute_ms": 381.43,
+      "after_segment_end_ms": 615.79,
+      "source_text": "Has a cost. The AI agent must not delete the files.",
+      "target_text": "有代价。AI Agent 不得删除这些文件。"
+    }
+  ]
+}

@@ -1,9 +1,10 @@
 """One audio/ASR stream and one translation worker per local backend session."""
 
 import asyncio
+from collections import deque
 from collections.abc import Awaitable, Callable
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import asdict
+from dataclasses import asdict, dataclass, replace
 from functools import partial
 import math
 import time
@@ -14,10 +15,21 @@ from livesub.subtitles.revision import SegmentRevisionState
 from livesub.subtitles.segmenter import Segmenter, SourceUpdate
 from livesub.translation.base import ContextPair, TranslationRequest, Translator
 from livesub.translation.scheduler import PendingTranslations, QueueCapacityError
+from livesub.translation.mlx_engine import MAX_CONTEXT_PAIRS
 
 
 _DRAIN_TIMEOUT_SECONDS = 10
 _TRANSLATION_TIMEOUT_SECONDS = 10
+_PREVIEW_INTERVAL_SECONDS = 0.75
+
+
+@dataclass(frozen=True, slots=True)
+class ConfirmedSegment:
+    request: TranslationRequest
+    start_ms: int
+    end_ms: int
+    sequence: int
+    pair: ContextPair
 
 
 class SessionGate:
@@ -102,8 +114,9 @@ class LiveSession:
         self._segmenter: Segmenter | None = None
         self._revisions: dict[str, SegmentRevisionState] = {}
         self._metadata: dict[str, SourceUpdate] = {}
-        self._confirmed: list[ContextPair] = []
+        self._confirmed: deque[ConfirmedSegment] = deque(maxlen=32)
         self._last_preview_at: dict[str, float] = {}
+        self._deferred_previews: dict[str, tuple[TranslationRequest, asyncio.TimerHandle]] = {}
         self._subtitle_sequence = 0
         self._asr_offset_samples = 0
         self._silence_samples = 0
@@ -246,6 +259,7 @@ class LiveSession:
         if self._closed:
             return
         self._closed = True
+        self._cancel_deferred_previews()
         if self.gate.state not in {"idle", "error"}:
             await self.stop()
         if self._translation_task is not None:
@@ -273,12 +287,8 @@ class LiveSession:
     ) -> None:
         if self._segmenter is None or self._segmenter.session_id != session_id:
             self._subtitle_sequence = 0
-        if (
-            self._segmenter is None
-            or self._segmenter.session_id != session_id
-            or self._segmenter.source_language != source_language
-        ):
-            self._confirmed = []
+        self._confirmed.clear()
+        self._cancel_deferred_previews()
         self._segmenter = Segmenter(session_id, generation, source_language, target_language)
         self._pending.begin(session_id, generation)
         self._translation_ready.clear()
@@ -379,9 +389,11 @@ class LiveSession:
                 source_language=update.source_language,
                 target_language=update.target_language,
                 source_text=update.source_text,
-                confirmed_context=tuple(self._confirmed[-2:]),
             )
             if update.source_final:
+                deferred = self._deferred_previews.pop(update.segment_id, None)
+                if deferred is not None:
+                    deferred[1].cancel()
                 try:
                     added = self._pending.add_final(request)
                 except QueueCapacityError:
@@ -393,11 +405,45 @@ class LiveSession:
                     self._translation_idle.clear()
                     self._translation_ready.set()
             else:
-                now = time.monotonic()
-                if now - self._last_preview_at.get(update.segment_id, 0) >= 0.75:
-                    if self._pending.add_preview(request):
-                        self._last_preview_at[update.segment_id] = now
-                        self._translation_ready.set()
+                self._schedule_preview(request)
+
+    def _schedule_preview(self, request: TranslationRequest) -> None:
+        if self._closed:
+            return
+        if self._pending.replace_preview(request):
+            return
+        deferred = self._deferred_previews.get(request.segment_id)
+        if deferred is not None:
+            # Keep the original deadline so a stream of revisions cannot
+            # continually postpone the latest preview.
+            self._deferred_previews[request.segment_id] = (request, deferred[1])
+            return
+        delay = (
+            self._last_preview_at.get(request.segment_id, 0)
+            + _PREVIEW_INTERVAL_SECONDS - time.monotonic()
+        )
+        if delay <= 0:
+            self._publish_preview(request)
+        else:
+            handle = asyncio.get_running_loop().call_later(
+                delay, self._release_preview, request.segment_id
+            )
+            self._deferred_previews[request.segment_id] = (request, handle)
+
+    def _publish_preview(self, request: TranslationRequest) -> None:
+        if self._pending.add_preview(request):
+            self._last_preview_at[request.segment_id] = time.monotonic()
+            self._translation_ready.set()
+
+    def _release_preview(self, segment_id: str) -> None:
+        deferred = self._deferred_previews.pop(segment_id, None)
+        if deferred is not None:
+            self._publish_preview(deferred[0])
+
+    def _cancel_deferred_previews(self) -> None:
+        for _, handle in self._deferred_previews.values():
+            handle.cancel()
+        self._deferred_previews.clear()
 
     async def _translate(self) -> None:
         while True:
@@ -407,6 +453,7 @@ class LiveSession:
                 await self._translation_ready.wait()
                 continue
             request, is_final = item
+            request = replace(request, confirmed_context=self._context_for(request))
             try:
                 result = await self._run_translation(self._translator.translate, request)
                 if (
@@ -436,10 +483,32 @@ class LiveSession:
                     translation_state=state_name,
                 ):
                     if state_name == "final":
-                        self._confirmed.append(ContextPair(request.source_text, target))
+                        meta = self._metadata[request.segment_id]
+                        self._confirmed.append(ConfirmedSegment(
+                            request=replace(request, confirmed_context=()),
+                            start_ms=meta.start_ms, end_ms=meta.end_ms, sequence=meta.sequence,
+                            pair=ContextPair(request.source_text, target),
+                        ))
                     await self._emit_subtitle(request.segment_id)
             if self._pending.final_count == 0:
                 self._translation_idle.set()
+
+    def _context_for(self, request: TranslationRequest) -> tuple[ContextPair, ...]:
+        current = self._metadata.get(request.segment_id)
+        if current is None:
+            return ()
+        earlier = [item for item in self._confirmed if (
+            item.request.session_id == request.session_id
+            and item.request.generation == request.generation
+            and item.request.source_language == request.source_language
+            and item.request.target_language == request.target_language
+            and item.request.segment_id != request.segment_id
+            and item.sequence < current.sequence
+            and item.start_ms <= current.start_ms
+            and item.end_ms <= current.start_ms
+        )]
+        earlier.sort(key=lambda item: (item.start_ms, item.sequence))
+        return tuple(item.pair for item in earlier[-MAX_CONTEXT_PAIRS:])
 
     async def _emit_subtitle(self, segment_id: str) -> None:
         meta = self._metadata[segment_id]

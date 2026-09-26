@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import LiveSubSubtitles
 
 @main
 struct LiveSubApp: App {
@@ -21,9 +22,11 @@ struct LiveSubApp: App {
         }
 
         Settings {
-            LiveSubSettings(controller: controller)
-                .frame(width: 480)
-                .padding(24)
+            ScrollView {
+                LiveSubSettings(controller: controller)
+                    .padding(24)
+            }
+            .frame(width: 660, height: 680)
         }
     }
 }
@@ -75,6 +78,14 @@ private struct LiveSubMenu: View {
         Button(controller.adjustingOverlay ? "完成调整并锁定" : "调整字幕位置") {
             controller.togglePositionAdjustment()
         }
+        Picker("字幕显示", selection: Binding(
+            get: { controller.subtitleDisplayMode },
+            set: { controller.selectSubtitleDisplayMode($0) }
+        )) {
+            ForEach(SubtitleDisplayMode.allCases) { mode in
+                Text(mode.label).tag(mode)
+            }
+        }
         Button("重置字幕位置") { controller.resetOverlayPosition() }
         Divider()
         Button("设置…") { openSettings() }
@@ -94,6 +105,8 @@ private struct LiveSubSettings: View {
             LabeledContent("语音识别", value: "Confucius4-R2T2 · 本地 Metal")
             LabeledContent("翻译", value: "Qwen3-4B-Instruct · 本地 MLX")
             LabeledContent("当前状态", value: controller.status)
+            Divider()
+            TerminologySettingsView()
             Divider()
             Text("权限")
                 .font(.headline)

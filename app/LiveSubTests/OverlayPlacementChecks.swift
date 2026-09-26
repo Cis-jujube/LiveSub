@@ -1,5 +1,6 @@
 import CoreGraphics
 import Foundation
+import LiveSubSubtitles
 @testable import LiveSubOverlay
 
 @main
@@ -10,6 +11,7 @@ enum OverlayPlacementChecks {
         try malformedSavedPositionIsClamped()
         try placementRoundTripsAfterDragAndResize()
         try newSessionClearsPreviousCaption()
+        try translationOnlyProjectionAndPlacement()
         print("OverlayPlacementChecks: 4 geometry checks and caption reset passed")
     }
 
@@ -25,6 +27,32 @@ enum OverlayPlacementChecks {
         let next = OverlayCaption(sourceText: "New session")
         overlay.update(next)
         try expect(overlay.caption == next, "new session accepts fresh captions")
+    }
+
+    @MainActor static func translationOnlyProjectionAndPlacement() throws {
+        let pending = OverlayCaption(sourceText: "Original must stay hidden")
+        try expect(pending.sourceForDisplay(in: .translationOnly) == nil, "translation-only never leaks pending source")
+        try expect(pending.targetForDisplay(in: .translationOnly) == "翻译中…", "pending has explicit target placeholder")
+        let pair = OverlayCaption(sourceText: "A newer source revision", translatedSourceText: "An earlier source", targetText: "较早译文", translationState: .preview)
+        try expect(pair.visibleSourceText == "An earlier source", "bilingual source retains translation pairing")
+        try expect(pair.targetForDisplay(in: .translationOnly) == "较早译文", "valid paired preview remains visible while ASR advances")
+        let unpaired = OverlayCaption(sourceText: "Source", targetText: "Unpaired target")
+        try expect(unpaired.targetForDisplay(in: .translationOnly) == "翻译中…", "unpaired targets must not render")
+        let failed = OverlayCaption(sourceText: "Source", translationState: .failed)
+        try expect(failed.targetForDisplay(in: .translationOnly) == "翻译失败", "failure is distinct from pending")
+        let overlay = OverlayWindowController()
+        overlay.update(pair)
+        overlay.setDisplayMode(.translationOnly)
+        overlay.setDisplayMode(.bilingual)
+        try expect(overlay.caption == pair && !overlay.isVisible && !overlay.isAdjusting, "display toggles preserve caption and never open or unlock a hidden panel")
+        let display = OverlayDisplay(id: 1, visibleFrame: CGRect(x: 0, y: 25, width: 1440, height: 850))
+        let adjusted = CGRect(x: 130, y: 200, width: 820, height: 164)
+        let saved = OverlayPlacementGeometry.record(frame: adjusted, on: display)
+        let compact = OverlayPlacementGeometry.resolve(saved: saved, screens: [display], preferredDisplayID: 1, height: SubtitleDisplayMode.translationOnly.overlayHeight)!
+        try expect(compact.height == 108 && abs(compact.minY - adjusted.minY) < 1 && abs(compact.width - adjusted.width) < 1, "compact mode preserves adjusted bottom and width")
+        let restored = try resolved(OverlayPlacementGeometry.record(frame: compact, on: display), screens: [display], preferredDisplayID: 1)
+        try expect(abs(restored.height - 164) < 1 && abs(restored.minY - adjusted.minY) < 1, "bilingual height restores at saved bottom anchor")
+        print("Translation-only pending, pairing, failure, visibility, and compact placement checks passed")
     }
 
     static func defaultPlacementUsesVisibleAreaAndWidthCap() throws {

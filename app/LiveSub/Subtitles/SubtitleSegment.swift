@@ -36,9 +36,12 @@ public struct CaptionPair: Equatable, Sendable {
     public let translatedSourceText: String?
     public let targetText: String?
 
-    public init(sourceText: String, translatedSourceText: String?, targetText: String?) {
+    public let translationState: TranslationState
+
+    public init(sourceText: String, translatedSourceText: String?, targetText: String?, translationState: TranslationState = .pending) {
         self.sourceText = sourceText
         self.translatedSourceText = translatedSourceText
         self.targetText = targetText
+        self.translationState = translationState
     }
 }

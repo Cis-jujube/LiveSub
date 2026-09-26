@@ -111,6 +111,75 @@ def summarize(
     report["frame_rejected_errors"] = errors.count("frame_rejected")
     report["server_queue_depth_exposed"] = False
 
+    # These timestamps are client receipt times, not native capture/UI timings.
+    report["target_latency_scope"] = (
+        "Paced WAV audio-start to backend WebSocket IPC reception in this smoke client; "
+        "excludes native capture and UI rendering and does not measure end-of-speech. "
+        "Source-final waits start at first observed matching final source revision, "
+        "not at the backend's internal ASR completion. Usable targets are nonblank "
+        "preview/final translations with a nonblank translated source; useful previews "
+        "also match the current source text and revision."
+    )
+
+    def offset_ms(at: float | None) -> float | None:
+        return round((at - audio_start) * 1000, 2) if at is not None and audio_start is not None else None
+
+    first_target_at = None
+    first_current_preview_at = None
+    useful_preview_events = 0
+    useful_previews = set()
+    segment_timings = {}
+    first_source_observed = {}
+    source_final_observed = {}
+    final_target_waits = []
+    for at, segment in subtitle_records:
+        segment_id = segment.get("segment_id")
+        first_source_observed.setdefault(segment_id, at)
+        timing = segment_timings.setdefault(segment_id, {
+            "segment_index": len(segment_timings) + 1,
+            "first_source_observed_after_audio_start_ms": offset_ms(at),
+            "first_usable_target_after_audio_start_ms": None,
+            "first_usable_target_after_source_observed_ms": None,
+        })
+        revision_key = (segment_id, segment.get("source_revision"), segment.get("source_text"))
+        if segment.get("source_final"):
+            source_final_observed.setdefault(revision_key, at)
+        usable_target = (
+            segment.get("translation_state") in ("preview", "final")
+            and bool(segment.get("target_text", "").strip())
+            and bool(segment.get("translated_source_text", "").strip())
+        )
+        current_pair = (
+            segment.get("translated_source_revision") is not None
+            and segment.get("translated_source_revision") == segment.get("source_revision")
+            and segment.get("translated_source_text") == segment.get("source_text")
+        )
+        if usable_target:
+            if first_target_at is None:
+                first_target_at = at
+            if timing["first_usable_target_after_source_observed_ms"] is None:
+                timing["first_usable_target_after_audio_start_ms"] = offset_ms(at)
+                timing["first_usable_target_after_source_observed_ms"] = round(
+                    (at - first_source_observed[segment_id]) * 1000, 2
+                )
+        if usable_target and current_pair and segment.get("translation_state") == "preview":
+            if first_current_preview_at is None:
+                first_current_preview_at = at
+            useful_preview_events += 1
+            useful_previews.add((*revision_key, segment.get("target_text")))
+        if usable_target and current_pair and segment.get("source_final") and segment.get("translation_state") == "final":
+            final_target_waits.append({
+                "segment_index": timing["segment_index"],
+                "source_revision": segment.get("source_revision"),
+                "source_final_observed_to_final_target_ms": round((at - source_final_observed[revision_key]) * 1000, 2),
+            })
+    report["audio_start_to_first_usable_target_ms"] = offset_ms(first_target_at)
+    report["audio_start_to_first_current_pair_preview_ms"] = offset_ms(first_current_preview_at)
+    report["useful_preview_events"] = useful_preview_events
+    report["useful_previews"] = len(useful_previews)
+    report["segment_target_timings"] = list(segment_timings.values())
+    report["source_final_to_final_target_waits"] = final_target_waits
+
     if start_sent is not None:
         listening = next((at for at, event in state_records if event.get("state") == "listening"), None)
         report["start_to_listening_ms"] = round((listening - start_sent) * 1000, 2) if listening else None

@@ -48,6 +48,12 @@ class PendingTranslations:
         self._finals.append(request)
         return True
 
+    def replace_preview(self, request: TranslationRequest) -> bool:
+        """Refresh queued work without scheduling another model invocation."""
+        if request.segment_id not in self._previews:
+            return False
+        return self.add_preview(request)
+
     def pop_next(self) -> tuple[TranslationRequest, bool] | None:
         if self._finals:
             return self._finals.popleft(), True

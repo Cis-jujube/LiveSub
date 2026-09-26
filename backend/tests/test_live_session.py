@@ -327,3 +327,163 @@ def test_new_session_clears_translation_context_and_subtitle_sequence():
         await session.close()
 
     asyncio.run(run())
+
+
+def test_backlogged_finals_get_fresh_context_at_dequeue():
+    class RecordingTranslator(FakeTranslator):
+        def __init__(self):
+            self.requests = []
+
+        def translate(self, request):
+            self.requests.append(request)
+            return super().translate(request)
+
+    async def run():
+        async def emit(_):
+            pass
+
+        translator = RecordingTranslator()
+        session = LiveSession(QuietASR(), translator, emit)
+        await session.start("context", 1, "en", "zh")
+        # Enqueue all before any translation can finish.
+        await session._process_asr([
+            ASREvent("We discuss AI agents.", 0, 100, final=True),
+            ASREvent("They use tools.", 100, 200, final=True),
+            ASREvent("They also use tokens.", 200, 300, final=True),
+        ])
+        await session.stop()
+        assert [len(r.confirmed_context) for r in translator.requests] == [0, 1, 2]
+        assert translator.requests[-1].confirmed_context[-1].source_text == "They use tools."
+        assert len(session._confirmed) == 3
+        await session.close()
+
+    asyncio.run(run())
+
+
+def test_context_excludes_self_future_overlap_wrong_generation_and_direction():
+    from dataclasses import replace
+    from livesub.session import ConfirmedSegment
+    from livesub.subtitles.segmenter import SourceUpdate
+    from livesub.translation.base import ContextPair, TranslationRequest
+
+    async def emit(_):
+        pass
+
+    session = LiveSession(QuietASR(), FakeTranslator(), emit)
+    current = TranslationRequest("s", 2, "current", 1, "en", "zh", "current")
+    session._metadata["current"] = SourceUpdate("s", 2, "current", 10, 100, 200, "en", "zh", "current", 1, False)
+    for name, generation, language, seq, start, end in [
+        ("prior", 2, "en", 1, 0, 100),
+        ("current", 2, "en", 2, 0, 50),
+        ("future", 2, "en", 11, 200, 300),
+        ("overlap", 2, "en", 3, 50, 150),
+        ("oldgen", 1, "en", 4, 0, 50),
+        ("wrongdir", 2, "zh", 5, 0, 50),
+    ]:
+        req = replace(current, segment_id=name, generation=generation, source_language=language, target_language="zh" if language == "en" else "en")
+        session._confirmed.append(ConfirmedSegment(req, start, end, seq, ContextPair(name, name)))
+    assert [p.source_text for p in session._context_for(current)] == ["prior"]
+    for i in range(100):
+        session._confirmed.append(session._confirmed[0])
+    assert len(session._confirmed) == 32
+    session._begin_generation("s", 3, "en", "zh")
+    assert not session._confirmed
+    asyncio.run(session.close())
+
+
+def test_latest_throttled_preview_is_translated_without_another_asr_event(monkeypatch):
+    monkeypatch.setattr(session_module, "_PREVIEW_INTERVAL_SECONDS", 0.05)
+
+    class RecordingTranslator(FakeTranslator):
+        def __init__(self):
+            self.requests = []
+
+        def translate(self, request):
+            self.requests.append(request)
+            return super().translate(request)
+
+    async def run():
+        first_ready = asyncio.Event()
+        latest_ready = asyncio.Event()
+
+        async def emit(event):
+            if event["kind"] == "subtitle":
+                subtitle = event["segment"]
+                if subtitle["translation_state"] == "preview":
+                    if subtitle["translated_source_text"] == "hello":
+                        first_ready.set()
+                    if subtitle["translated_source_text"] == "hello there friend":
+                        latest_ready.set()
+
+        translator = RecordingTranslator()
+        session = LiveSession(QuietASR(), translator, emit)
+        try:
+            await session.start("preview", 1, "en", "zh")
+            await session._process_asr([ASREvent("hello", 0, 160, False)])
+            await asyncio.wait_for(first_ready.wait(), timeout=1)
+            await session._process_asr([ASREvent("hello there", 0, 320, False)])
+            handle = session._deferred_previews["1:0"][1]
+            await session._process_asr([ASREvent("hello there friend", 0, 480, False)])
+            assert session._deferred_previews["1:0"][1] is handle
+            await asyncio.wait_for(latest_ready.wait(), timeout=1)
+            assert [r.source_text for r in translator.requests] == ["hello", "hello there friend"]
+            assert not session._deferred_previews
+            await session._process_asr([ASREvent("hello there friend", 0, 480, True)])
+            assert await session.stop()
+        finally:
+            await session.close()
+
+    asyncio.run(run())
+
+
+def test_final_cancels_deferred_preview_and_keeps_final_priority():
+    async def run():
+        events = []
+
+        async def emit(event):
+            events.append(event)
+
+        session = LiveSession(QuietASR(), FakeTranslator(), emit)
+        try:
+            await session.start("preview", 1, "en", "zh")
+            session._last_preview_at["1:0"] = session_module.time.monotonic()
+            await session._process_asr([ASREvent("hello", 0, 160, False)])
+            handle = session._deferred_previews["1:0"][1]
+            await session._process_asr([ASREvent("hello friend", 0, 320, True)])
+            assert handle.cancelled()
+            assert not session._deferred_previews
+            assert await session.stop()
+            subtitles = [e["segment"] for e in events if e["kind"] == "subtitle"]
+            assert subtitles[-1]["translation_state"] == "final"
+            assert subtitles[-1]["translated_source_text"] == "hello friend"
+            assert not any(s["translation_state"] == "preview" for s in subtitles)
+        finally:
+            await session.close()
+
+    asyncio.run(run())
+
+
+def test_generation_change_and_close_cancel_deferred_preview():
+    from livesub.translation.base import TranslationRequest
+
+    async def run():
+        async def emit(_):
+            pass
+
+        session = LiveSession(QuietASR(), FakeTranslator(), emit)
+        session._begin_generation("preview", 1, "en", "zh")
+        session._last_preview_at["1:0"] = session_module.time.monotonic()
+        session._schedule_preview(TranslationRequest("preview", 1, "1:0", 1, "en", "zh", "hello"))
+        first = session._deferred_previews["1:0"][1]
+        session._begin_generation("preview", 2, "zh", "en")
+        assert first.cancelled()
+        assert not session._deferred_previews
+        assert session._pending.pop_next() is None
+        session._last_preview_at["2:0"] = session_module.time.monotonic()
+        session._schedule_preview(TranslationRequest("preview", 2, "2:0", 1, "zh", "en", "你好"))
+        second = session._deferred_previews["2:0"][1]
+        await session.close()
+        assert second.cancelled()
+        assert not session._deferred_previews
+
+    asyncio.run(run())

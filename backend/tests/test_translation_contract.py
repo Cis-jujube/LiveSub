@@ -1,6 +1,8 @@
 """Deterministic translation contract tests; real model tests run separately."""
 
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
+import json
 from pathlib import Path
 from threading import get_ident
 
@@ -157,3 +159,74 @@ def test_model_load_and_inference_stay_on_one_worker_thread(tmp_path):
     assert worker_threads[0] != get_ident()
     engine.close()
     engine.close()
+
+
+def test_unchanged_final_reuses_generation_with_fresh_result_identity(tmp_path):
+    engine, _, calls = translator(tmp_path)
+    try:
+        preview = request()
+        engine.translate(preview)
+        final = engine.translate(replace(preview, source_revision=5))
+        assert len(calls) == 1
+        assert final.source_revision == 5
+        assert final.translated_source_text == preview.source_text
+        assert final.target_text == "你好，世界。"
+    finally:
+        engine.close()
+
+
+@pytest.mark.parametrize("changes", [
+    {"session_id": "other-session"},
+    {"generation": 3},
+    {"segment_id": "other-segment"},
+    {"source_text": "Hello again."},
+    {"source_language": "zh", "target_language": "en"},
+    {"confirmed_context": (ContextPair("Earlier.", "先前。"),)},
+])
+def test_generation_cache_requires_same_identity_source_direction_and_prompt(tmp_path, changes):
+    engine, _, calls = translator(tmp_path)
+    try:
+        first = request()
+        engine.translate(first)
+        engine.translate(replace(first, **changes))
+        assert len(calls) == 2
+        # This is a one-entry cache, not an accumulating transcript cache.
+        engine.translate(first)
+        assert len(calls) == 3
+    finally:
+        engine.close()
+
+
+def test_cached_raw_output_restores_fresh_terminology_targets(tmp_path):
+    from livesub.translation.terminology import Terminology
+
+    engine, _, calls = translator(tmp_path, "你好，__LS0_0__。")
+    path = tmp_path / "terminology.json"
+    engine._terminology = Terminology(path)
+
+    def save(target):
+        path.write_text(json.dumps({"version": 1, "profile": "general", "entries": [
+            {"source_language": "en", "source": "Jujube", "target": target}
+        ]}))
+
+    try:
+        save("枣")
+        assert engine.translate(request("Hello, Jujube.")).target_text == "你好，枣。"
+        save("早早")
+        result = engine.translate(request("Hello, Jujube.", source_revision=5))
+        assert result.target_text == "你好，早早。"
+        assert len(calls) == 1
+        assert result.source_revision == 5
+    finally:
+        engine.close()
+
+
+def test_failed_translation_is_not_cached(tmp_path):
+    engine, _, calls = translator(tmp_path, "")
+    try:
+        for _ in range(2):
+            with pytest.raises(TranslationError):
+                engine.translate(request())
+        assert len(calls) == 2
+    finally:
+        engine.close()

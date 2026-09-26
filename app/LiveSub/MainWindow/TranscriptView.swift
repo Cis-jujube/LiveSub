@@ -6,6 +6,7 @@ import SwiftUI
 struct TranscriptView: View {
     @ObservedObject private var controller: AppController
     @ObservedObject private var store: SubtitleStore
+    @Environment(\.openSettings) private var openSettings
     @StateObject private var viewState = TranscriptViewState()
 
     init(controller: AppController) {
@@ -30,12 +31,11 @@ struct TranscriptView: View {
                                     emptyState
                                         .frame(maxWidth: .infinity, minHeight: max(260, geometry.size.height - 130))
                                 } else {
-                                    ForEach(store.segments) { segment in
-                                        transcriptRow(segment, width: availableWidth)
-                                            .id(segment.id)
-                                        Rectangle().fill(.primary.opacity(0.07))
-                                            .frame(height: 1)
+                                    ForEach(store.paragraphs) { paragraph in
+                                        transcriptRow(paragraph, width: availableWidth)
+                                            .id(paragraph.id)
                                     }
+                                    Color.clear.frame(height: 1).id("transcript-bottom")
                                 }
                             }
                             .padding(.horizontal, 24)
@@ -43,17 +43,22 @@ struct TranscriptView: View {
                         .onScrollPhaseChange { _, phase in
                             if phase == .interacting { viewState.followLive = false }
                         }
-                        .onChange(of: store.segments.last?.sequence) { _, _ in
-                            guard viewState.followLive, let id = store.segments.last?.id else { return }
-                            scroll.scrollTo(id, anchor: .bottom)
+                        .onChange(of: store.contentRevision) { _, _ in
+                            guard viewState.followLive else { return }
+                            // Wait for the growing paragraph to receive its updated layout.
+                            Task { @MainActor in
+                                await Task.yield()
+                                guard viewState.followLive else { return }
+                                scroll.scrollTo("transcript-bottom", anchor: .bottom)
+                            }
                         }
                         .overlay(alignment: .bottomTrailing) {
                             if !viewState.followLive && !store.segments.isEmpty {
                                 Button("回到实时") {
                                     viewState.followLive = true
-                                    if let id = store.segments.last?.id {
+                                    if !store.paragraphs.isEmpty {
                                         withAnimation(.easeOut(duration: 0.2)) {
-                                            scroll.scrollTo(id, anchor: .bottom)
+                                            scroll.scrollTo("transcript-bottom", anchor: .bottom)
                                         }
                                     }
                                 }
@@ -95,6 +100,8 @@ struct TranscriptView: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
+                Button("设置…") { openSettings() }
+                    .buttonStyle(.link)
                 Text(controller.status)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(controller.phase == "error" ? .orange : .secondary)
@@ -143,6 +150,23 @@ struct TranscriptView: View {
                     controller.toggleOverlay()
                 }
             }
+            HStack(spacing: 12) {
+                Picker("字幕显示", selection: Binding(
+                    get: { controller.subtitleDisplayMode },
+                    set: { controller.selectSubtitleDisplayMode($0) }
+                )) {
+                    ForEach(SubtitleDisplayMode.allCases) { mode in
+                        Text(mode.label).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 180)
+                .help("同步切换主窗口与悬浮字幕；复制和导出仍保留双语")
+                Text("复制与导出保留双语")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 20)
@@ -150,29 +174,31 @@ struct TranscriptView: View {
 
     private func columnHeader(_ width: CGFloat) -> some View {
         HStack(spacing: 0) {
-            HStack(spacing: 8) {
-                Text("原文")
-                    .font(.system(size: 14, weight: .semibold))
-                Text(controller.direction.sourceLabel)
-                    .foregroundStyle(.secondary)
-            }
-            .frame(width: max(180, width * viewState.sourceFraction - 10), alignment: .leading)
-            .accessibilityLabel("原文栏，可拖动中间分隔线调整宽度")
+            if controller.subtitleDisplayMode.showsSource {
+                HStack(spacing: 8) {
+                    Text("原文")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text(controller.direction.sourceLabel)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(width: max(180, width * viewState.sourceFraction - 10), alignment: .leading)
+                .accessibilityLabel("原文栏，可拖动中间分隔线调整宽度")
 
-            Rectangle()
-                .fill(.primary.opacity(0.18))
-                .frame(width: 2, height: 26)
-                .padding(.horizontal, 7)
-                .contentShape(Rectangle())
-                .gesture(
-                    DragGesture(minimumDistance: 0)
-                        .onChanged { value in
-                            let candidate = viewState.dragStartFraction + value.translation.width / width
-                            viewState.sourceFraction = min(0.72, max(0.28, candidate))
-                        }
-                        .onEnded { _ in viewState.dragStartFraction = viewState.sourceFraction }
-                )
-                .help("拖动以调整两栏宽度")
+                Rectangle()
+                    .fill(.primary.opacity(0.18))
+                    .frame(width: 2, height: 26)
+                    .padding(.horizontal, 7)
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { value in
+                                let candidate = viewState.dragStartFraction + value.translation.width / width
+                                viewState.sourceFraction = min(0.72, max(0.28, candidate))
+                            }
+                            .onEnded { _ in viewState.dragStartFraction = viewState.sourceFraction }
+                    )
+                    .help("拖动以调整两栏宽度")
+            }
 
             HStack(spacing: 8) {
                 Text("译文")
@@ -187,42 +213,32 @@ struct TranscriptView: View {
         .padding(.vertical, 10)
     }
 
-    private func transcriptRow(_ segment: SubtitleSegment, width: CGFloat) -> some View {
+    private func transcriptRow(_ paragraph: TranscriptParagraph, width: CGFloat) -> some View {
         HStack(alignment: .top, spacing: 0) {
-            VStack(alignment: .leading, spacing: 7) {
-                Text(segment.sourceText)
-                    .font(.system(size: 16, weight: .medium))
+            if let source = controller.subtitleDisplayMode.sourceForDisplay(paragraph.sourceText) {
+                Text(source)
+                    .font(.system(size: 17))
+                    .lineSpacing(7)
                     .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Text("\(segment.sourceLanguage.uppercased()) · \(timeLabel(segment.startMs))")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.tertiary)
+                    .frame(width: max(180, width * viewState.sourceFraction - 10), alignment: .leading)
+
+                Color.clear.frame(width: 16)
             }
-            .frame(width: max(180, width * viewState.sourceFraction - 10), alignment: .leading)
 
-            Color.clear.frame(width: 16)
-
-            VStack(alignment: .leading, spacing: 7) {
-                if segment.translationState == .failed {
-                    Text("翻译失败 · 原文已保留")
-                        .foregroundStyle(.orange)
-                } else if segment.targetText.isEmpty {
-                    Text("翻译中…")
-                        .foregroundStyle(.secondary)
-                } else {
-                    Text(segment.targetText)
-                        .textSelection(.enabled)
-                    if !segment.translationIsCurrent {
-                        Text("原文更新中 · 译文对应前一版本")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                    }
+            VStack(alignment: .leading, spacing: 8) {
+                Text(paragraph.targetForDisplay(in: controller.subtitleDisplayMode))
+                    .font(.system(size: 17))
+                    .lineSpacing(7)
+                    .textSelection(.enabled)
+                if paragraph.pendingCount > 0 || paragraph.failedCount > 0 {
+                    Text(paragraph.failedCount > 0 ? "部分翻译失败 · 原文已保留" : "译文正在跟随原文更新")
+                        .font(.system(size: 11))
+                        .foregroundStyle(paragraph.failedCount > 0 ? Color.orange : Color.secondary)
                 }
             }
-            .font(.system(size: 16))
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.vertical, 15)
+        .padding(.vertical, 19)
         .accessibilityElement(children: .contain)
     }
 
@@ -231,7 +247,7 @@ struct TranscriptView: View {
             Image(systemName: "captions.bubble")
                 .font(.system(size: 34, weight: .light))
                 .foregroundStyle(.secondary)
-            Text("开始后，双语字幕会出现在这里")
+            Text(controller.subtitleDisplayMode.showsSource ? "开始后，双语字幕会出现在这里" : "开始后，译文会出现在这里")
                 .font(.system(size: 17, weight: .medium))
             Text("选择麦克风或系统音频；首次使用时 macOS 会请求相应权限。\n原始音频默认不保存，字幕只保留在本次会话中。")
                 .multilineTextAlignment(.center)
@@ -245,7 +261,7 @@ struct TranscriptView: View {
             Circle()
                 .fill(controller.phase == "listening" ? Color.green : Color.gray)
                 .frame(width: 7, height: 7)
-            Text("\(store.segments.count) 个片段 · \(controller.phase == "listening" ? "本地识别中" : controller.status)")
+            Text("\(store.paragraphs.count) 段 · \(controller.phase == "listening" ? "本地识别中" : controller.status)")
                 .lineLimit(1)
                 .foregroundStyle(.secondary)
             Spacer()
@@ -263,10 +279,7 @@ struct TranscriptView: View {
         .background(Color(nsColor: .controlBackgroundColor).opacity(0.55))
     }
 
-    private func timeLabel(_ ms: UInt64) -> String {
-        let seconds = ms / 1_000
-        return String(format: "%02d:%02d", seconds / 60, seconds % 60)
-    }
+
 }
 
 @MainActor

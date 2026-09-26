@@ -1,0 +1,84 @@
+{
+  "audio_sha256": "501032ae1af39904da5ab187db8ed218c4bc00e018516081f7c6b8c8478602df",
+  "audio_duration_ms": 6740.0,
+  "source_language": "zh",
+  "target_language": "en",
+  "frame_samples": 2560,
+  "frames_sent": 43,
+  "unauthorized_rejected": true,
+  "failure_codes": [],
+  "asr_model_repo": "netease-youdao/Confucius4-R2T2-GGUF",
+  "asr_model_revision": "ce1e3170e8a082d3b564ca2982df3e324569cda6",
+  "asr_processor_repo": "netease-youdao/Confucius4-R2T2",
+  "asr_processor_revision": "c2c4149f42f9f4f9a8526f4279089cbdf39db1f8",
+  "translation_model_repo": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+  "translation_model_revision": "50d427756c6b1b2fe0c0a10f67fbda1fc8e82c1b",
+  "model_assets_verified": true,
+  "model_verification_ms": 1279.37,
+  "protocol_version": 1,
+  "unauthorized_rejection_kind": "http_403",
+  "max_send_lateness_ms": 1.17,
+  "backend_exit_code": -15,
+  "extra_backend_stdout_lines": 0,
+  "state_sequence": [
+    "loading",
+    "listening",
+    "stopping",
+    "idle"
+  ],
+  "error_codes": [],
+  "subtitle_events": 23,
+  "unique_segment_ids": 2,
+  "audio_overflow_errors": 0,
+  "translation_overflow_errors": 0,
+  "frame_rejected_errors": 0,
+  "server_queue_depth_exposed": false,
+  "target_latency_scope": "Paced WAV audio-start to backend WebSocket IPC reception in this smoke client; excludes native capture and UI rendering and does not measure end-of-speech. Source-final waits start at first observed matching final source revision, not at the backend's internal ASR completion. Usable targets are nonblank preview/final translations with a nonblank translated source; useful previews also match the current source text and revision.",
+  "audio_start_to_first_usable_target_ms": 1606.03,
+  "audio_start_to_first_current_pair_preview_ms": 1606.03,
+  "useful_preview_events": 1,
+  "useful_previews": 1,
+  "segment_target_timings": [
+    {
+      "segment_index": 1,
+      "first_source_observed_after_audio_start_ms": 1228.47,
+      "first_usable_target_after_audio_start_ms": 1606.03,
+      "first_usable_target_after_source_observed_ms": 377.56
+    },
+    {
+      "segment_index": 2,
+      "first_source_observed_after_audio_start_ms": 4107.65,
+      "first_usable_target_after_audio_start_ms": 4460.66,
+      "first_usable_target_after_source_observed_ms": 353.01
+    }
+  ],
+  "source_final_to_final_target_waits": [
+    {
+      "segment_index": 1,
+      "source_revision": 8,
+      "source_final_observed_to_final_target_ms": 792.48
+    },
+    {
+      "segment_index": 2,
+      "source_revision": 9,
+      "source_final_observed_to_final_target_ms": 950.02
+    }
+  ],
+  "start_to_listening_ms": 3413.23,
+  "stop_to_idle_ms": 169.27,
+  "audio_start_to_first_subtitle_ms": 1228.47,
+  "final_translated_segments": 2,
+  "duplicate_final_segment_ids": 0,
+  "final_translations_retained_at_idle": true,
+  "final_translations_received_after_stop": 1,
+  "all_final_pairs_match_source_revision": true,
+  "final_translation_after_segment_end_ms": [
+    902.82,
+    1066.73
+  ],
+  "last_final_segment_near_audio_end": true,
+  "expected_tail_substring_found": null,
+  "target_script_present": true,
+  "post_final_state_regressions": 0,
+  "passed": true
+}

@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import SwiftUI
+import LiveSubSubtitles
 
 @MainActor
 public final class OverlayWindowController: NSObject {
@@ -57,6 +58,20 @@ public final class OverlayWindowController: NSObject {
         guard presentation.caption != caption else { return }
         presentation.caption = caption
         presentation.textOpacity = 1
+        if isVisible { restartFade() }
+    }
+
+    public func setDisplayMode(_ mode: SubtitleDisplayMode) {
+        guard presentation.displayMode != mode else { return }
+        presentation.displayMode = mode
+        dragStartFrame = nil
+        resizeStartFrame = nil
+        if let panel {
+            // Keep the user's width and bottom anchor while changing the number of text rows.
+            var frame = panel.frame
+            frame.size.height = mode.overlayHeight
+            panel.setFrame(clamped(frame), display: true)
+        }
         if isVisible { restartFade() }
     }
 
@@ -204,7 +219,8 @@ public final class OverlayWindowController: NSObject {
         return OverlayPlacementGeometry.resolve(
             saved: savedPlacement,
             screens: availableDisplays(),
-            preferredDisplayID: mainID
+            preferredDisplayID: mainID,
+            height: presentation.displayMode.overlayHeight
         )
     }
 

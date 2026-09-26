@@ -36,6 +36,17 @@ def test_final_removes_pending_preview_for_same_segment():
     assert queue.pop_next() is None
 
 
+def test_replace_preview_only_refreshes_existing_pending_work():
+    queue = PendingTranslations()
+    queue.begin("session-a", 1)
+    assert not queue.replace_preview(request("a", 1))
+    assert queue.add_preview(request("a", 1))
+    assert queue.replace_preview(request("a", 2))
+    assert not queue.replace_preview(request("a", 1))
+    assert queue.pop_next() == (request("a", 2), False)
+    assert not queue.replace_preview(request("a", 3))
+
+
 def test_final_overflow_is_explicit_and_old_generation_is_rejected():
     queue = PendingTranslations(max_finals=1)
     queue.begin("session-a", 1)

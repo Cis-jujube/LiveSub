@@ -1,0 +1,665 @@
+{
+  "timestamp_utc": "2026-09-26T14:07:50.639828+00:00",
+  "model_repo": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+  "model_revision": "50d427756c6b1b2fe0c0a10f67fbda1fc8e82c1b",
+  "temperature": 0,
+  "output_tokens": 256,
+  "context_pairs": 2,
+  "context_tokens": 512,
+  "input_tokens": 2048,
+  "model_load_ms": 2959.72,
+  "baseline_sha256": "d07f23276f602fd968498cfac93f58f38511319e7fc29d4d116e4d6c0a5aa47e",
+  "summary": {
+    "baseline": {
+      "lexical_pass": 7,
+      "total": 20,
+      "median_ms": 232.72,
+      "mean_ms": 239.46,
+      "max_ms": 314.1
+    },
+    "new": {
+      "lexical_pass": 17,
+      "total": 20,
+      "median_ms": 252.32,
+      "mean_ms": 257.77,
+      "max_ms": 353.3
+    }
+  },
+  "cases": [
+    {
+      "id": "ai-agent",
+      "source": "The AI agent can use tools.",
+      "context": [],
+      "required": [
+        "AI Agent"
+      ],
+      "forbidden": [],
+      "runs": {
+        "baseline": {
+          "translation": "人工智能代理可以使用工具。",
+          "elapsed_ms": 270.29,
+          "input_tokens": 137,
+          "lexical_pass": false,
+          "missing": [
+            "AI Agent"
+          ],
+          "unexpected": []
+        },
+        "new": {
+          "translation": "AI Agent可以使用工具。",
+          "elapsed_ms": 251.06,
+          "input_tokens": 213,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        }
+      }
+    },
+    {
+      "id": "ai-agent-plural",
+      "source": "Two AI agents cooperate.",
+      "context": [],
+      "required": [
+        "AI Agents"
+      ],
+      "forbidden": [],
+      "runs": {
+        "new": {
+          "translation": "两个AI Agents合作。",
+          "elapsed_ms": 238.02,
+          "input_tokens": 211,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        },
+        "baseline": {
+          "translation": "两个AI代理合作。",
+          "elapsed_ms": 210.17,
+          "input_tokens": 135,
+          "lexical_pass": false,
+          "missing": [
+            "AI Agents"
+          ],
+          "unexpected": []
+        }
+      }
+    },
+    {
+      "id": "software-agent",
+      "source": "This software agent runs locally.",
+      "context": [],
+      "required": [
+        "Agent"
+      ],
+      "forbidden": [],
+      "runs": {
+        "baseline": {
+          "translation": "这个软件代理在本地运行。",
+          "elapsed_ms": 230.53,
+          "input_tokens": 136,
+          "lexical_pass": false,
+          "missing": [
+            "Agent"
+          ],
+          "unexpected": []
+        },
+        "new": {
+          "translation": "这个软件Agent在本地运行。",
+          "elapsed_ms": 258.06,
+          "input_tokens": 210,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        }
+      }
+    },
+    {
+      "id": "context-agent",
+      "source": "The agent chooses a tool.",
+      "context": [
+        [
+          "We are building an LLM system.",
+          "我们正在构建大语言模型系统。"
+        ]
+      ],
+      "required": [
+        "Agent"
+      ],
+      "forbidden": [],
+      "runs": {
+        "new": {
+          "translation": "Agent 选择一个工具。",
+          "elapsed_ms": 249.68,
+          "input_tokens": 235,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        },
+        "baseline": {
+          "translation": "代理选择一个工具。",
+          "elapsed_ms": 209.73,
+          "input_tokens": 161,
+          "lexical_pass": false,
+          "missing": [
+            "Agent"
+          ],
+          "unexpected": []
+        }
+      }
+    },
+    {
+      "id": "old-wrong-term",
+      "source": "The AI agent uses a context window.",
+      "context": [
+        [
+          "The AI agent plans tasks.",
+          "AI代理人规划任务。"
+        ]
+      ],
+      "required": [
+        "AI Agent",
+        "上下文窗口"
+      ],
+      "forbidden": [
+        "代理人"
+      ],
+      "runs": {
+        "baseline": {
+          "translation": "AI代理人使用上下文窗口。",
+          "elapsed_ms": 234.9,
+          "input_tokens": 158,
+          "lexical_pass": false,
+          "missing": [
+            "AI Agent"
+          ],
+          "unexpected": [
+            "代理人"
+          ]
+        },
+        "new": {
+          "translation": "AI代理人使用上下文窗口。",
+          "elapsed_ms": 264.85,
+          "input_tokens": 249,
+          "lexical_pass": false,
+          "missing": [
+            "AI Agent"
+          ],
+          "unexpected": [
+            "代理人"
+          ]
+        }
+      }
+    },
+    {
+      "id": "llm-tokens",
+      "source": "The LLM prompt contains 32 tokens.",
+      "context": [],
+      "required": [
+        "32",
+        "tokens"
+      ],
+      "forbidden": [
+        "令牌"
+      ],
+      "runs": {
+        "new": {
+          "translation": "LLM提示词包含32个标记。",
+          "elapsed_ms": 290.08,
+          "input_tokens": 214,
+          "lexical_pass": false,
+          "missing": [
+            "tokens"
+          ],
+          "unexpected": []
+        },
+        "baseline": {
+          "translation": "LLM提示词包含32个标记。",
+          "elapsed_ms": 271.09,
+          "input_tokens": 140,
+          "lexical_pass": false,
+          "missing": [
+            "tokens"
+          ],
+          "unexpected": []
+        }
+      }
+    },
+    {
+      "id": "context-token",
+      "source": "Each token has a cost.",
+      "context": [
+        [
+          "We discuss large language models.",
+          "我们讨论大语言模型。"
+        ]
+      ],
+      "required": [
+        "token"
+      ],
+      "forbidden": [],
+      "runs": {
+        "baseline": {
+          "translation": "每个标记都有成本。",
+          "elapsed_ms": 215.94,
+          "input_tokens": 157,
+          "lexical_pass": false,
+          "missing": [
+            "token"
+          ],
+          "unexpected": []
+        },
+        "new": {
+          "translation": "每个token都有成本。",
+          "elapsed_ms": 253.58,
+          "input_tokens": 231,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        }
+      }
+    },
+    {
+      "id": "real-estate",
+      "source": "The real estate agent sold a house.",
+      "context": [
+        [
+          "We discuss AI agents.",
+          "我们讨论AI Agent。"
+        ]
+      ],
+      "required": [
+        "房"
+      ],
+      "forbidden": [
+        "Agent",
+        "agent"
+      ],
+      "runs": {
+        "new": {
+          "translation": "房地产经纪人卖掉了房子。",
+          "elapsed_ms": 225.3,
+          "input_tokens": 157,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        },
+        "baseline": {
+          "translation": "房地产经纪人卖掉了房子。",
+          "elapsed_ms": 222.09,
+          "input_tokens": 157,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        }
+      }
+    },
+    {
+      "id": "travel-agent",
+      "source": "The travel agent booked a flight.",
+      "context": [],
+      "required": [
+        "航班"
+      ],
+      "forbidden": [
+        "Agent"
+      ],
+      "runs": {
+        "baseline": {
+          "translation": "旅行社预订了航班。",
+          "elapsed_ms": 211.39,
+          "input_tokens": 137,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        },
+        "new": {
+          "translation": "旅行社预订了航班。",
+          "elapsed_ms": 209.81,
+          "input_tokens": 137,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        }
+      }
+    },
+    {
+      "id": "auth-token",
+      "source": "The authentication token expires in 60 seconds.",
+      "context": [
+        [
+          "The LLM uses tokens.",
+          "大语言模型使用tokens。"
+        ]
+      ],
+      "required": [
+        "60",
+        "令牌"
+      ],
+      "forbidden": [],
+      "runs": {
+        "new": {
+          "translation": "认证令牌在60秒后过期。",
+          "elapsed_ms": 260.6,
+          "input_tokens": 161,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        },
+        "baseline": {
+          "translation": "认证令牌在60秒后过期。",
+          "elapsed_ms": 261.42,
+          "input_tokens": 161,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        }
+      }
+    },
+    {
+      "id": "token-gratitude",
+      "source": "She gave him a token of appreciation.",
+      "context": [],
+      "required": [],
+      "forbidden": [
+        "token",
+        "令牌"
+      ],
+      "runs": {
+        "baseline": {
+          "translation": "她给了他一份感激的礼物。",
+          "elapsed_ms": 241.03,
+          "input_tokens": 138,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        },
+        "new": {
+          "translation": "她给了他一份感激的礼物。",
+          "elapsed_ms": 241.72,
+          "input_tokens": 138,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        }
+      }
+    },
+    {
+      "id": "word-boundaries",
+      "source": "Tokenization does not change the reagent.",
+      "context": [],
+      "required": [
+        "试剂"
+      ],
+      "forbidden": [],
+      "runs": {
+        "new": {
+          "translation": "物化不会改变试剂。",
+          "elapsed_ms": 220.18,
+          "input_tokens": 139,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        },
+        "baseline": {
+          "translation": "物化不会改变试剂。",
+          "elapsed_ms": 220.53,
+          "input_tokens": 139,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        }
+      }
+    },
+    {
+      "id": "negation",
+      "source": "The AI agent must not delete 42 files or expose the password.",
+      "context": [],
+      "required": [
+        "AI Agent",
+        "42"
+      ],
+      "forbidden": [],
+      "runs": {
+        "baseline": {
+          "translation": "人工智能代理不得删除42个文件或泄露密码。",
+          "elapsed_ms": 281.74,
+          "input_tokens": 145,
+          "lexical_pass": false,
+          "missing": [
+            "AI Agent"
+          ],
+          "unexpected": []
+        },
+        "new": {
+          "translation": "AI Agent 不得删除42个文件或泄露密码。",
+          "elapsed_ms": 328.34,
+          "input_tokens": 221,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        }
+      }
+    },
+    {
+      "id": "unfinished",
+      "source": "If the AI agent cannot",
+      "context": [],
+      "required": [
+        "AI Agent"
+      ],
+      "forbidden": [],
+      "runs": {
+        "new": {
+          "translation": "如果AI Agent无法",
+          "elapsed_ms": 236.93,
+          "input_tokens": 211,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        },
+        "baseline": {
+          "translation": "如果人工智能代理无法",
+          "elapsed_ms": 208.01,
+          "input_tokens": 135,
+          "lexical_pass": false,
+          "missing": [
+            "AI Agent"
+          ],
+          "unexpected": []
+        }
+      }
+    },
+    {
+      "id": "custom-name",
+      "source": "Jujube built the AI agent.",
+      "context": [],
+      "required": [
+        "枣枣",
+        "AI Agent"
+      ],
+      "forbidden": [],
+      "runs": {
+        "baseline": {
+          "translation": "胖大海构建了AI代理。",
+          "elapsed_ms": 242.36,
+          "input_tokens": 138,
+          "lexical_pass": false,
+          "missing": [
+            "枣枣",
+            "AI Agent"
+          ],
+          "unexpected": []
+        },
+        "new": {
+          "translation": "枣枣构建了AI Agent。",
+          "elapsed_ms": 283.78,
+          "input_tokens": 229,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        }
+      }
+    },
+    {
+      "id": "custom-product",
+      "source": "LiveMind processes prompts locally.",
+      "context": [],
+      "required": [
+        "灵思"
+      ],
+      "forbidden": [],
+      "runs": {
+        "new": {
+          "translation": "灵思在本地处理提示。",
+          "elapsed_ms": 279.74,
+          "input_tokens": 212,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        },
+        "baseline": {
+          "translation": "LiveMind 在本地处理提示。",
+          "elapsed_ms": 248.23,
+          "input_tokens": 136,
+          "lexical_pass": false,
+          "missing": [
+            "灵思"
+          ],
+          "unexpected": []
+        }
+      }
+    },
+    {
+      "id": "custom-override",
+      "source": "The AI agent reads a prompt.",
+      "context": [],
+      "required": [
+        "智能体"
+      ],
+      "forbidden": [
+        "AI Agent"
+      ],
+      "runs": {
+        "baseline": {
+          "translation": "人工智能代理读取一个提示。",
+          "elapsed_ms": 250.04,
+          "input_tokens": 137,
+          "lexical_pass": false,
+          "missing": [
+            "智能体"
+          ],
+          "unexpected": []
+        },
+        "new": {
+          "translation": "智能体读取一个提示。",
+          "elapsed_ms": 262.58,
+          "input_tokens": 213,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        }
+      }
+    },
+    {
+      "id": "general-profile",
+      "source": "The real estate agent requests an access token.",
+      "context": [],
+      "required": [
+        "房",
+        "令牌"
+      ],
+      "forbidden": [],
+      "runs": {
+        "new": {
+          "translation": "房地产经纪人要求获取访问令牌。",
+          "elapsed_ms": 232.37,
+          "input_tokens": 139,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        },
+        "baseline": {
+          "translation": "房地产经纪人要求获取访问令牌。",
+          "elapsed_ms": 230.43,
+          "input_tokens": 139,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        }
+      }
+    },
+    {
+      "id": "zh-english",
+      "source": "大语言模型的上下文窗口有4096个token。",
+      "context": [],
+      "required": [
+        "4096",
+        "context window",
+        "token"
+      ],
+      "forbidden": [],
+      "runs": {
+        "baseline": {
+          "translation": "The context window of large language models has 4096 tokens.",
+          "elapsed_ms": 314.1,
+          "input_tokens": 145,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        },
+        "new": {
+          "translation": "The context window of a large language model has 4096 tokens.",
+          "elapsed_ms": 353.3,
+          "input_tokens": 238,
+          "lexical_pass": true,
+          "missing": [],
+          "unexpected": []
+        }
+      }
+    },
+    {
+      "id": "context-four-old",
+      "source": "Each token has a cost.",
+      "context": [
+        [
+          "We discuss large language models.",
+          "我们讨论大语言模型。"
+        ],
+        [
+          "This is our first slide.",
+          "这是第一张幻灯片。"
+        ],
+        [
+          "Let's continue.",
+          "我们继续。"
+        ]
+      ],
+      "required": [
+        "token"
+      ],
+      "forbidden": [],
+      "runs": {
+        "new": {
+          "translation": "每个标记都有成本。",
+          "elapsed_ms": 215.42,
+          "input_tokens": 174,
+          "lexical_pass": false,
+          "missing": [
+            "token"
+          ],
+          "unexpected": []
+        },
+        "baseline": {
+          "translation": "每个标记都有成本。",
+          "elapsed_ms": 215.18,
+          "input_tokens": 174,
+          "lexical_pass": false,
+          "missing": [
+            "token"
+          ],
+          "unexpected": []
+        }
+      }
+    }
+  ]
+}
