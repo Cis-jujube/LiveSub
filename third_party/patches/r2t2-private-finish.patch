@@ -1,0 +1,10 @@
+--- a/r2t2/r2t2_asr.py
++++ b/r2t2/r2t2_asr.py
+@@ -574,7 +574,6 @@
+         state.language = lang
+         state.text = txt.split("|")[0]
+         state.chunk_id += 1
+-        print(f"finish state.text={state.text}")
+         return state.text
+ 
+     def streaming_transcribe_no_reset(

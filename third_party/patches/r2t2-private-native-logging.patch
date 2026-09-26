@@ -1,0 +1,25 @@
+--- a/r2t2_llama/native_ext.cpp
++++ b/r2t2_llama/native_ext.cpp
+@@ -25,6 +25,14 @@
+ 
+ namespace {
+ 
++// mtmd DEBUG logs print the full ASR prompt, including already recognized
++// speech. Keep its warnings/errors but never write transcript text to stderr.
++void quiet_mtmd_log(ggml_log_level level, const char * text, void *) {
++    if (level == GGML_LOG_LEVEL_WARN || level == GGML_LOG_LEVEL_ERROR) {
++        std::fputs(text, stderr);
++    }
++}
++
+ struct ModelDeleter {
+     void operator()(llama_model * model) const {
+         if (model) {
+@@ -273,6 +281,7 @@
+             int n_gpu_layers = -1) {
+         n_batch_ = n_batch;
+         llama_backend_init();
++        mtmd_helper_log_set(quiet_mtmd_log, nullptr);
+ 
+         llama_model_params model_params = llama_model_default_params();
+         model_params.n_gpu_layers = n_gpu_layers;

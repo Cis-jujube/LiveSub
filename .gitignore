@@ -1,0 +1,12 @@
+.DS_Store
+.build/
+dist/
+backend/.venv/
+**/__pycache__/
+**/.pytest_cache/
+**/*.pyc
+models/
+*.wav
+*.aiff
+*.mp3
+third_party/Confucius4-R2T2/

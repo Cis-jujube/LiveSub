@@ -1,0 +1,24 @@
+--- a/r2t2_llama/CMakeLists.txt
++++ b/r2t2_llama/CMakeLists.txt
+@@ -30,12 +30,17 @@
+ # Emit the pybind extension into r2t2_llama/native/ next to native/__init__.py,
+ # so `from r2t2_llama.native.qwen3asr_native import Qwen3ASRNative` resolves at
+ # runtime.
+-# The rpath points at ../bin where the prebuilt libllama/libggml/libmtmd .so
+-# artifacts are shipped alongside the package.
++# The rpath points at ../bin where the native llama/ggml/mtmd libraries are
++# installed alongside the package. macOS uses @loader_path, not $ORIGIN.
++if(APPLE)
++    set(R2T2_PACKAGE_RPATH "@loader_path/../bin")
++else()
++    set(R2T2_PACKAGE_RPATH "$ORIGIN/../bin")
++endif()
+ set_target_properties(qwen3asr_native PROPERTIES
+     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/native"
+     BUILD_RPATH
+-        "${CMAKE_BINARY_DIR}/bin"
++        "${CMAKE_BINARY_DIR}/bin;${R2T2_PACKAGE_RPATH}"
+     INSTALL_RPATH
+-        "$ORIGIN/../bin"
++        "${R2T2_PACKAGE_RPATH}"
+ )

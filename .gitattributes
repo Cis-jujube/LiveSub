@@ -1,0 +1,2 @@
+# Unified diffs contain a leading space on blank context lines by design.
+third_party/patches/*.patch whitespace=-blank-at-eol
