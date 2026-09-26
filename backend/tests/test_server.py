@@ -1,10 +1,36 @@
 import pytest
+import json
+import os
+import subprocess
+import sys
 from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
 from livesub.server import create_app
 
 from test_live_session import FakeASR, FakeTranslator
+
+
+def test_backend_exits_when_owning_app_disappears():
+    env = os.environ.copy()
+    env["LIVESUB_AUTH_TOKEN"] = "watchdog-test"
+    env["LIVESUB_PARENT_PID"] = str(os.getpid() + 10_000_000)
+    process = subprocess.Popen(
+        [sys.executable, "-m", "livesub.server"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        text=True,
+        env=env,
+    )
+    try:
+        assert process.stdout is not None
+        ready = json.loads(process.stdout.readline())
+        assert ready["kind"] == "ready"
+        assert process.wait(timeout=5) == 0
+    finally:
+        if process.poll() is None:
+            process.terminate()
+            process.wait(timeout=5)
 
 
 class QuietASR(FakeASR):

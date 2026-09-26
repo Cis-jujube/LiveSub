@@ -168,6 +168,10 @@ def create_app(
 
 async def _serve() -> None:
     token = os.environ.get("LIVESUB_AUTH_TOKEN", "")
+    parent_value = os.environ.get("LIVESUB_PARENT_PID")
+    parent_pid = int(parent_value) if parent_value is not None else None
+    if parent_pid is not None and parent_pid <= 1:
+        raise ValueError("invalid owning application PID")
     root = Path(os.environ.get(
         "LIVESUB_MODEL_ROOT", str(Path.home() / "Library/Application Support/LiveSub/models")
     ))
@@ -201,8 +205,26 @@ async def _serve() -> None:
         ws_max_size=64 * 1024,
     )
     server = uvicorn.Server(config)
+
+    async def monitor_parent() -> None:
+        # A crashed or force-quit app cannot run its normal child cleanup.
+        while not server.should_exit:
+            await asyncio.sleep(1)
+            if parent_pid is not None and os.getppid() != parent_pid:
+                server.should_exit = True
+                return
+
+    watchdog = asyncio.create_task(monitor_parent()) if parent_pid is not None else None
     print(json.dumps({"kind": "ready", "version": PROTOCOL_VERSION, "port": port}), flush=True)
-    await server.serve(sockets=[listener])
+    try:
+        await server.serve(sockets=[listener])
+    finally:
+        if watchdog is not None:
+            watchdog.cancel()
+            try:
+                await watchdog
+            except asyncio.CancelledError:
+                pass
 
 
 def main() -> None:
