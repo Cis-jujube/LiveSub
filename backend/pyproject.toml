@@ -1,0 +1,23 @@
+[project]
+name = "livesub-backend"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.116,<1",
+    "huggingface-hub>=0.36,<2",
+    "mlx-lm==0.29.1",
+    "numpy==2.5.3",
+    "qwen-asr==0.0.6",
+    "requests==2.34.2",
+    "soundfile==0.14.0",
+    "torch==2.14.0",
+    "uvicorn>=0.35,<1",
+    "websockets>=15,<17",
+]
+
+[dependency-groups]
+dev = ["pytest>=8,<9"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

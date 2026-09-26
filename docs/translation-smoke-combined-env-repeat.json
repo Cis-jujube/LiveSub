@@ -1,0 +1,34 @@
+{
+  "timestamp_utc": "2026-09-26T11:46:09.686709+00:00",
+  "model_repo": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+  "model_revision": "50d427756c6b1b2fe0c0a10f67fbda1fc8e82c1b",
+  "model_path": "/Users/zaozaowang/Library/Application Support/LiveSub/models/Qwen3-4B-Instruct-2507-4bit",
+  "mlx_lm_version": "0.29.1",
+  "mlx_version": "0.32.2",
+  "python_version": "3.12.13",
+  "platform": "macOS-27.0-arm64-arm-64bit",
+  "model_load_ms": 2563.47,
+  "inference_median_ms": 246.87,
+  "inference_p95_ms": 261.59,
+  "max_rss_bytes_macos": 2918662144,
+  "cases": [
+    {
+      "id": "en-01",
+      "source_language": "en",
+      "text": "Please don't delete the 42 rows.",
+      "focus": "negation, number",
+      "target_language": "zh",
+      "translation": "请不要删除这42行。",
+      "elapsed_ms": 263.22
+    },
+    {
+      "id": "zh-01",
+      "source_language": "zh",
+      "text": "请不要删除这 42 行。",
+      "focus": "negation, number",
+      "target_language": "en",
+      "translation": "Please do not delete these 42 lines.",
+      "elapsed_ms": 230.52
+    }
+  ]
+}

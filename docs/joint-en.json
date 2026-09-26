@@ -1,0 +1,37 @@
+{
+  "audio_sha256": "a29462b8ebd467318000e683b9117ade46230d3255ed2024e7db894abd9b38c9",
+  "language": "English",
+  "audio_seconds": 11.0,
+  "asr_load_ms": 3017.6,
+  "translation_load_ms": 277.64,
+  "asr_compute_seconds": 7.598,
+  "asr_rtf": 0.691,
+  "asr_mean_push_ms": 108.79,
+  "asr_max_push_ms": 173.29,
+  "max_feed_lateness_ms": 23.88,
+  "max_translation_queue_depth": 1,
+  "queued_final_segments": 2,
+  "translated_segments": 2,
+  "failures": [],
+  "max_rss_bytes_macos": 5252907008,
+  "translations": [
+    {
+      "segment_id": "1",
+      "source_revision": 1,
+      "source_end_ms": 6000,
+      "translation_compute_ms": 482.75,
+      "after_segment_end_ms": 677.0,
+      "source_text": "And so, my fellow Americans, ask not what your",
+      "target_text": "因此，我的同胞们，不要问你们能为国家做些什么。"
+    },
+    {
+      "segment_id": "2",
+      "source_revision": 1,
+      "source_end_ms": 11000,
+      "translation_compute_ms": 302.69,
+      "after_segment_end_ms": 492.97,
+      "source_text": "The country can do for you. Ask what you can do for your country.",
+      "target_text": "国家可以为你做些什么。问问你能为国家做什么。"
+    }
+  ]
+}
