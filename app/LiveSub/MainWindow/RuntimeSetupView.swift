@@ -3,6 +3,7 @@ import SwiftUI
 /// Shown in the main window until the local runtime and models are in place.
 struct RuntimeSetupView: View {
     @ObservedObject var setup: RuntimeSetup
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var running: Bool { setup.phase == .running }
     private var failure: String? {
@@ -40,6 +41,7 @@ struct RuntimeSetupView: View {
 
                 if running || setup.downloadedBytes > 0 && failure != nil {
                     progress.frame(width: 470).padding(.top, 20)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                 }
 
                 if let failure {
@@ -51,6 +53,7 @@ struct RuntimeSetupView: View {
                         .textSelection(.enabled)
                         .frame(width: 470, alignment: .leading)
                         .padding(.top, 16)
+                        .transition(.opacity)
                 }
 
                 actions.padding(.top, 24)
@@ -63,6 +66,8 @@ struct RuntimeSetupView: View {
             }
             .padding(.vertical, 48)
             .frame(maxWidth: .infinity)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.35), value: setup.phase)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.35), value: setup.stepIndex)
         }
     }
 
@@ -74,12 +79,14 @@ struct RuntimeSetupView: View {
             ZStack {
                 if done {
                     Image(systemName: "checkmark.circle.fill").foregroundStyle(Theme.accent)
+                        .transition(.scale(scale: 0.5).combined(with: .opacity))
                 } else if active {
-                    ProgressView().controlSize(.small)
+                    ProgressView().controlSize(.small).transition(.opacity)
                 } else if failed {
                     Image(systemName: "exclamationmark.circle.fill").foregroundStyle(Theme.caution)
+                        .transition(.scale(scale: 0.5).combined(with: .opacity))
                 } else {
-                    Image(systemName: "circle").foregroundStyle(.tertiary)
+                    Image(systemName: "circle").foregroundStyle(.tertiary).transition(.opacity)
                 }
             }
             .font(.system(size: 18))
@@ -110,6 +117,7 @@ struct RuntimeSetupView: View {
         }
         return VStack(alignment: .leading, spacing: 8) {
             ProgressView(value: fraction).tint(Theme.accent)
+                .animation(reduceMotion ? nil : .linear(duration: 1.4), value: fraction)
             HStack {
                 Text(line).monospacedDigit()
                 Spacer()
@@ -123,19 +131,17 @@ struct RuntimeSetupView: View {
     @ViewBuilder private var actions: some View {
         if running {
             Button("取消") { setup.cancel() }
-                .controlSize(.large)
+                .buttonStyle(LiftButtonStyle(prominent: false))
+                .transition(.opacity)
         } else {
             Button {
                 setup.start()
             } label: {
                 Label(failure == nil ? "开始下载" : "重试", systemImage: failure == nil ? "arrow.down.circle" : "arrow.clockwise")
-                    .font(.system(size: 14, weight: .semibold))
-                    .padding(.horizontal, 10)
             }
-            .buttonStyle(.borderedProminent)
-            .buttonBorderShape(.capsule)
-            .controlSize(.large)
+            .buttonStyle(LiftButtonStyle())
             .keyboardShortcut(.defaultAction)
+            .transition(.opacity)
         }
     }
 }

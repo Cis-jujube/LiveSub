@@ -20,13 +20,14 @@ struct TranscriptView: View {
     }
 
     var body: some View {
-        Group {
+        ZStack {
             if setup.isReady {
-                readingSurface
+                readingSurface.transition(.opacity)
             } else {
-                RuntimeSetupView(setup: setup)
+                RuntimeSetupView(setup: setup).transition(.opacity)
             }
         }
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.5), value: setup.isReady)
         .frame(minWidth: 820, minHeight: 560)
         .background(Theme.paper)
         .toolbarBackground(.hidden, for: .windowToolbar)
@@ -308,16 +309,13 @@ struct TranscriptView: View {
                             }
                         } label: {
                             Label("回到实时", systemImage: "arrow.down")
-                                .font(.system(size: 13, weight: .semibold))
-                                .padding(.horizontal, 4)
                         }
-                        .buttonStyle(.borderedProminent)
-                        .buttonBorderShape(.capsule)
-                        .controlSize(.large)
-                        .shadow(color: .black.opacity(0.12), radius: 8, y: 3)
+                        .buttonStyle(LiftButtonStyle(compact: true))
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
                     }
                 }
                 .padding(.bottom, 22)
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.25), value: viewState.followLive)
             }
         }
     }
@@ -483,13 +481,17 @@ struct TranscriptView: View {
                 .padding(.bottom, 20)
             Text(emptyCopy.title)
                 .font(.system(size: 22, weight: .semibold))
+                .contentTransition(.opacity)
                 .padding(.bottom, 8)
             Text(emptyCopy.detail)
                 .font(.system(size: 14))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
+                .contentTransition(.opacity)
             emptyStateAccessory
+                .transition(.opacity)
+                .id(controller.phase)
                 .frame(minHeight: 44)
                 .padding(.top, 24)
             Label("首次使用需授权音频访问。原始音频默认不保存，字幕仅保留于本次会话。", systemImage: "lock")
@@ -500,6 +502,7 @@ struct TranscriptView: View {
         }
         .frame(maxWidth: 480)
         .frame(maxWidth: .infinity)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.35), value: controller.phase)
     }
 
     @ViewBuilder private var emptyStateAccessory: some View {
@@ -511,23 +514,15 @@ struct TranscriptView: View {
         case "paused":
             Button { Task { await controller.resume() } } label: {
                 Label("继续", systemImage: "play.fill")
-                    .font(.system(size: 14, weight: .semibold))
-                    .padding(.horizontal, 10)
             }
-            .buttonStyle(.borderedProminent)
-            .buttonBorderShape(.capsule)
-            .controlSize(.large)
+            .buttonStyle(LiftButtonStyle())
             .disabled(!controller.canResume)
         default:
             VStack(spacing: 10) {
                 Button { Task { await controller.start() } } label: {
                     Label("开始", systemImage: "waveform")
-                        .font(.system(size: 14, weight: .semibold))
-                        .padding(.horizontal, 10)
                 }
-                .buttonStyle(.borderedProminent)
-                .buttonBorderShape(.capsule)
-                .controlSize(.large)
+                .buttonStyle(LiftButtonStyle())
                 .disabled(!controller.canStart)
                 Text("⌘R")
                     .font(.system(size: 11, weight: .medium).monospaced())

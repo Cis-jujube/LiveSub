@@ -105,6 +105,17 @@ struct DesignRender {
         try render(controller, mode: .bilingual, width: 1080, height: 720, dark: true, name: "bilingual-dark.png")
         try render(AppController(), mode: .bilingual, width: 1080, height: 720, dark: false, name: "empty-1080.png")
         try render(AppController(), mode: .bilingual, width: 1080, height: 720, dark: true, name: "empty-dark.png")
+        // The welcome mark's idle motion, sampled across its cycle (the app animates between these).
+        let frames = HStack(spacing: 18) {
+            ForEach(0..<8, id: \.self) { i in
+                VStack(spacing: 6) {
+                    EclipseFigure(live: false, time: Double(i) * 1.5).frame(width: 120, height: 120)
+                    Text(String(format: "%.1f s", Double(i) * 1.5)).font(.system(size: 11)).foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(28)
+        try capture(frames.background(Theme.paper), width: 1120, height: 210, dark: false, name: "eclipse-motion.png", title: "Eclipse motion")
         // First-launch download screen, shown until the runtime and models exist.
         let firstRun = AppController()
         firstRun.setup.showPreview(.needed)
