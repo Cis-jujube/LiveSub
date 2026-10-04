@@ -5,148 +5,156 @@
 <h1 align="center">LiveSub</h1>
 
 <p align="center">
-  <b>为 Mac 上听到的任何声音，配上实时双语字幕。</b><br>
-  中英互译 · 悬浮字幕 · 完全本地运行，音频不离开你的电脑
+  <b>Live bilingual subtitles for anything you hear on your Mac.</b><br>
+  English ↔ Chinese · floating captions · runs entirely on your Mac, audio never leaves it
 </p>
 
 <p align="center">
-  macOS 15+ · Apple Silicon · <a href="#english">English</a>
+  <b>English</b> · <a href="README.zh-CN.md">简体中文</a><br>
+  macOS 15+ · Apple Silicon · MIT License
 </p>
 
 <br>
 
-![LiveSub 主窗口：左侧原文、右侧译文，按段落对齐](design/previews/bilingual-1080.png)
+![LiveSub main window: source on the left, translation on the right, aligned by paragraph](design/previews/bilingual-1080.png)
 
-LiveSub 听取麦克风或系统音频——网课、会议、视频、播客——用本地语音识别模型转写，再即时翻译成另一种语言。原文与译文按段落并排呈现，也可以变成一行透明的悬浮字幕，叠在你正在看的任何窗口上。识别和翻译都在这台 Mac 上完成。
+LiveSub listens to your microphone or system audio — online classes, meetings, videos, podcasts — turns speech into text with a local speech-recognition model, and translates it into the other language as you listen. Source and translation sit side by side in paragraphs, or become a single line of transparent floating captions over whatever window you are watching. Recognition and translation both happen on your Mac.
 
-## 亮点
+## Highlights
 
-- **实时双语**　English → 简体中文、中文 → English。原文与译文按段落对齐，栏头的 ⇄ 一键切换方向；也可以只看译文。
-- **悬浮字幕**　透明、不抢焦点、鼠标可穿透，叠在视频或会议上方。字号、位置和宽度可调；画面太亮时打开「字幕底板」。
-- **完全本地**　Qwen3-ASR-1.7B 本地识别，Qwen3-4B-Instruct（MLX）本地翻译；macOS 26.4+ 装有系统翻译语言包时，英译中优先使用 Apple 离线翻译。
-- **专业术语**　AI、软件科技、数据统计、金融、量化金融、区块链词库自由组合，另可添加 100 条自定义固定译法。
-- **说话人**　可选检测最多 5 位说话人，只翻译你关心的那几位。
-- **保存与导出**　一键复制，或导出 TXT / Markdown，始终保留双语。
-- **原生体验**　SwiftUI 构建，适配浅色 / 深色模式、辅助功能与菜单栏控制。
+- **Fast** — on a Mac with Apple's offline translation, English → Chinese translation is ready a median of **21 ms** after the words are recognised. See [Speed](#speed).
+- **Live bilingual** — English → Simplified Chinese and Chinese → English. Source and translation are aligned by paragraph; the ⇄ button in the column header switches direction, or show the translation only.
+- **Floating captions** — transparent, never steal focus, click-through, laid over videos or meetings. Size, position and width are adjustable; turn on the caption backdrop when the picture is bright.
+- **Fully local** — speech-to-text runs on-device with Qwen3-ASR-1.7B; translation runs on-device with Qwen3-4B-Instruct (MLX), and on macOS 26.4+ with the system language packs installed, English → Chinese uses Apple's offline translation first.
+- **Terminology** — combine AI, software, data & statistics, finance, quantitative finance and blockchain glossaries, plus up to 100 custom fixed translations.
+- **Speakers** — optionally detect up to 5 speakers and translate only the ones you care about.
+- **Save & export** — copy everything in one click, or export TXT / Markdown, always bilingual.
+- **Native** — built with SwiftUI, with light and dark mode, accessibility and menu-bar controls.
 
-| 首次打开 | 深色模式 |
+| First launch | Dark mode |
 |---|---|
-| ![空白状态](design/previews/empty-1080.png) | ![深色模式](design/previews/bilingual-dark.png) |
-| **悬浮字幕（打开字幕底板）** | **翻译与术语设置** |
-| ![悬浮字幕](design/previews/overlay-backdrop.png) | ![设置](design/previews/settings-rows.png) |
+| ![Empty state](design/previews/empty-1080.png) | ![Dark mode](design/previews/bilingual-dark.png) |
+| **Floating captions (backdrop on)** | **Translation & terminology settings** |
+| ![Floating captions](design/previews/overlay-backdrop.png) | ![Settings](design/previews/settings-rows.png) |
 
-<sub>截图由真实界面渲染，字幕内容为示例文本。</sub>
+<sub>Screenshots are rendered from the real interface with sample text. The interface is in Chinese.</sub>
 
-## 系统要求
+## Speed
 
-- Apple Silicon（M 系列）Mac，macOS 15 或更新。开发与测试在 macOS 27 上进行，更早的版本尚未实测。
-- Xcode Command Line Tools（含 Swift）与 [uv](https://docs.astral.sh/uv/)。
-- 约 12 GB 可用空间。识别模型约 4.7 GB、翻译模型约 2.3 GB，存放在 `~/Library/Application Support/LiveSub/models/`，不会进入仓库或 App。
-- 首次下载模型需要联网，之后识别与翻译都在本地进行。
+Measured on an Apple M5 Pro (48 GB) with public and synthetic test audio. Times start when recognised text is ready and include terminology handling, inter-process communication and queueing; they exclude system audio capture and drawing on screen.
 
-## 安装
+| Step | Measured |
+|---|---|
+| English → Chinese translation, Apple offline translation (174 ordinary sentences) | median **21 ms**, P95 **35 ms**, max 48 ms |
+| Same path in the packaged app with continuous audio (47 translations) | median **36 ms**, P95 61 ms, all under 300 ms |
+| Translation with the local Qwen model (ordinary English sentences) | median **225 ms** |
+| First translated caption after the test audio starts | about **1.2 s** |
+| Rolling speech-to-text previews | about every **0.8 s**, revised in place until each sentence is final |
 
-目前还没有预编译的下载包，需要从源码构建。主要耗时在下载模型。
+Full method and raw data: [native translation round 4](docs/native-translation-round4-2026-10-03.md), [round 2](docs/english-chinese-round2-2026-10-03.md).
 
-**1. 获取源码**
+## Speech recognition models
+
+LiveSub's speech-to-text has always run on local models. The first versions used NetEase Youdao's **Confucius4-R2T2**, which decoded audio incrementally every 160 ms. In a same-machine comparison on the same audio, **Qwen3-ASR-1.7B** kept key technical and financial terms more reliably, so it is now the default recognition engine. The R2T2 adapter and benchmark scripts remain in the repository for comparison.
+
+| Engine (local, same audio) | Combined error rate |
+|---|---:|
+| Qwen3-ASR-1.7B (current) | **1.32%** |
+| Confucius4-R2T2 Q4 | 3.97% |
+| Whisper large-v3-turbo | 6.62% |
+
+A small sample of one real recording and four synthetic ones; it is not a general accuracy claim. Details: [recognition model comparison](docs/asr-model-comparison.md).
+
+## Requirements
+
+- An Apple Silicon (M-series) Mac running macOS 15 or later. Developed and tested on macOS 27; earlier versions are untested.
+- Xcode Command Line Tools (with Swift) and [uv](https://docs.astral.sh/uv/).
+- About 12 GB of free space. The recognition model is about 4.7 GB and the translation model about 2.3 GB; both live in `~/Library/Application Support/LiveSub/models/`, never in the repository or the app.
+- Downloading the models the first time needs internet; after that, recognition and translation run locally.
+
+## Install
+
+There is no prebuilt download yet, so LiveSub is built from source. Most of the time goes into downloading the models.
+
+**1. Get the source**
 
 ```bash
 git clone https://github.com/Cis-jujube/LiveSub.git
 cd LiveSub
 ```
 
-**2. 准备代码签名证书**
+**2. Prepare a code-signing certificate**
 
-macOS 把麦克风、屏幕与系统音频录制权限绑定在 App 的签名上，所以 LiveSub 需要一个固定的签名身份。没有开发者证书时，可以在「钥匙串访问 → 证书助理 → 创建证书」里新建一个自签名的「代码签名」证书，再查看它的 SHA-1：
+macOS ties microphone and screen & system audio recording permissions to the app's signature, so LiveSub needs a stable signing identity. If you have no developer certificate, create a self-signed "Code Signing" certificate in Keychain Access → Certificate Assistant → Create a Certificate, then find its SHA-1:
 
 ```bash
 security find-identity -v -p codesigning
 ```
 
-**3. 一次性准备模型与 App**
+**3. Prepare the models and the app (once)**
 
 ```bash
-export LIVESUB_SIGNING_IDENTITY="你的证书 SHA-1（40 位十六进制）"
+export LIVESUB_SIGNING_IDENTITY="your certificate's SHA-1 (40 hex characters)"
 ./script/setup_models.sh
 ```
 
-脚本会准备锁定版本的 Python 3.12 环境，下载并校验模型（来源、版本与哈希见[模型清单](docs/model-manifest.md)），构建并签名 `dist/LiveSub.app`。下载中断时重新运行即可。
+The script prepares a locked Python 3.12 environment, downloads and verifies the models (sources, revisions and hashes are in the [model manifest](docs/model-manifest.md)), then builds and signs `dist/LiveSub.app`. If a download is interrupted, run it again.
 
-**4. 打开**
+**4. Open**
 
 ```bash
 ./script/build_and_run.sh --run
 ```
 
-App 会自己启动并管理一个只监听 `127.0.0.1` 的本地后端，不需要另开终端；退出 App 时后端一并结束。
+The app starts and manages its own local backend, listening only on `127.0.0.1`; no extra terminal needed. Quitting the app stops the backend too.
 
-## 使用
+## Usage
 
-1. 在工具栏选择音源：**麦克风** 或 **系统音频**；在栏头用 ⇄ 选择翻译方向。
-2. 点 **开始**（⌘R）。第一次使用时，macOS 会请求麦克风或「屏幕与系统音频录制」权限。
-3. 字幕按段落出现在主窗口。手动往回翻时自动跟随会暂停，点 **回到实时** 继续。
-4. 点 **悬浮字幕** 把字幕叠到其他窗口上；在 **字幕外观** 里调整字号、位置、宽度和底板，调整完在字幕上点 **完成**。
-5. ⌘R 暂停 / 继续，⌘. 停止。**导出** 菜单里可以复制全部或保存为文件。
-6. 在 **设置**（⌘,）里组合领域词库、添加自定义术语。保存后从下一句开始生效。
+1. In the toolbar choose the audio source: **麦克风** (microphone) or **系统音频** (system audio). Choose the translation direction with ⇄ in the column header.
+2. Click **开始** (Start, ⌘R). The first time, macOS asks for microphone or screen & system audio recording permission.
+3. Subtitles appear in the main window by paragraph. Scrolling back pauses auto-follow; click **回到实时** (Back to live) to resume.
+4. Click **悬浮字幕** (Floating captions) to lay captions over other windows. In **字幕外观** (Caption appearance), adjust size, position, width and backdrop, then click **完成** (Done) on the caption.
+5. ⌘R pauses / resumes, ⌘. stops. The **导出** (Export) menu copies everything or saves a file.
+6. In **设置** (Settings, ⌘,), combine glossaries and add custom terms. Changes apply from the next sentence.
 
-菜单栏图标同样可以开始、暂停、显示悬浮字幕和调整字号。
+The menu-bar icon can also start, pause, show floating captions and change caption size.
 
-## 隐私
+## Privacy
 
-- 音频采集与模型推理全部在本机进行，后端只绑定 `127.0.0.1`。
-- 原始音频不会保存。字幕默认只保存在当前会话的内存里，只有你手动导出时才会写入文件。
-- 系统音频通过 ScreenCaptureKit 获取，不录制屏幕画面。
-- 术语配置保存在 `~/Library/Application Support/LiveSub/terminology.json`。
+- Audio capture and model inference all happen on your Mac; the backend binds only to `127.0.0.1`.
+- Raw audio is never saved. Subtitles stay in memory for the current session by default and are written to a file only when you export them.
+- System audio is captured with ScreenCaptureKit; the screen picture is not recorded.
+- Terminology settings are stored in `~/Library/Application Support/LiveSub/terminology.json`.
 
-## 当前状态
+## Status
 
-LiveSub 是一个个人项目，处于部分验收阶段：
+LiveSub is a personal project and is partially validated:
 
-- App 未经 Apple 公证，需要按上面的步骤自行构建和签名。
-- 一般场景的识别准确率、多人对话、长时间运行以及全屏 / 多屏下的悬浮字幕仍在验证中。
-- 受系统或媒体版权保护的声音可能无法采集。
+- The app is not notarized by Apple; build and sign it yourself as described above.
+- Recognition accuracy in everyday use, multi-speaker conversations, long sessions and floating captions in full-screen or multi-display setups are still being tested.
+- Audio protected by the system or by media copyright may not be capturable.
 
-测试方法与数据见[已知问题](docs/known-issues.md)、[人工测试矩阵](docs/manual-test-matrix.md)和[开发与验证记录](docs/development-log.md)。
+Test methods and data: [known issues](docs/known-issues.md), [manual test matrix](docs/manual-test-matrix.md) and the [development & validation log](docs/development-log.md).
 
-## 开发
+## Development
 
 ```bash
-./script/test.sh                     # 后端测试、Swift 检查与调试构建
-./script/build_and_run.sh --verify   # 构建并校验 release 版 .app，不打开
-./script/render_design.sh            # 用示例文本渲染界面截图到 design/previews/
+./script/test.sh                     # backend tests, Swift checks and a debug build
+./script/build_and_run.sh --verify   # build and verify the release .app without opening it
+./script/render_design.sh            # render interface screenshots with sample text into design/previews/
 ```
 
-| 目录 | 内容 |
+| Folder | Contents |
 |---|---|
-| `app/LiveSub/MainWindow` · `App` | SwiftUI 主窗口、设置、菜单栏与设计规范（`Theme.swift`） |
-| `app/LiveSub/Overlay` | 透明、非激活、默认鼠标穿透的悬浮字幕面板 |
-| `app/LiveSub/Audio` | 麦克风与 ScreenCaptureKit 采集，转换为 16 kHz 单声道 PCM |
-| `app/LiveSub/Subtitles` | 字幕存储、段落对齐、术语配置 |
-| `app/LiveSub/Backend` | Python 子进程管理与本机 WebSocket 通信 |
-| `backend/livesub` | Qwen3-ASR 识别、翻译调度、会话与字幕版本控制 |
-| `shared/protocol.md` | 音频帧、状态与字幕事件协议 |
-| `design/` | 设计方向、界面文案、QA 记录与图标方案 |
+| `app/LiveSub/MainWindow` · `App` | SwiftUI main window, settings, menu bar and design tokens (`Theme.swift`) |
+| `app/LiveSub/Overlay` | Transparent, non-activating, click-through floating caption panel |
+| `app/LiveSub/Audio` | Microphone and ScreenCaptureKit capture, converted to 16 kHz mono PCM |
+| `app/LiveSub/Subtitles` | Subtitle store, paragraph alignment, terminology settings |
+| `app/LiveSub/Backend` | Python subprocess management and local WebSocket communication |
+| `backend/livesub` | Qwen3-ASR recognition, translation scheduling, sessions and subtitle revisions |
+| `shared/protocol.md` | Audio frame, state and subtitle event protocol |
+| `design/` | Design direction, interface copy, QA records and icon explorations |
 
----
+## License
 
-<a id="english"></a>
-
-## English
-
-**LiveSub gives anything you hear on your Mac live bilingual subtitles, entirely on-device.** It listens to the microphone or system audio, transcribes speech with a local Qwen3-ASR model, and translates English ↔ Simplified Chinese with a local Qwen model, or Apple's offline translation on macOS 26.4+ when the language packs are installed. Source and translation sit side by side in paragraphs, or float over any window as transparent, click-through captions. Audio never leaves your computer.
-
-**Highlights:** paragraph-aligned bilingual transcript · translation-only mode · floating captions with adjustable size, position and an optional backdrop · domain glossaries (AI, software, data, finance, quant, blockchain) plus up to 100 custom terms · optional speaker detection · copy or export to TXT / Markdown · native SwiftUI with light and dark mode. The interface is currently in Chinese.
-
-**Requirements:** an Apple Silicon Mac running macOS 15 or later (developed and tested on macOS 27), Xcode Command Line Tools, [uv](https://docs.astral.sh/uv/), and about 12 GB of free space for models.
-
-**Build from source** (no prebuilt download yet). macOS ties audio permissions to the app's signature, so you need a code-signing certificate; a self-signed one from Keychain Access works.
-
-```bash
-git clone https://github.com/Cis-jujube/LiveSub.git && cd LiveSub
-security find-identity -v -p codesigning        # find your certificate's SHA-1
-export LIVESUB_SIGNING_IDENTITY="<40-hex SHA-1>"
-./script/setup_models.sh                        # one-time: Python env, models, signed app
-./script/build_and_run.sh --run                 # build and open dist/LiveSub.app
-```
-
-**Status:** a personal project that is partially validated. The app is not notarized. General accuracy, multi-speaker use, long sessions and multi-display overlays are still being tested. See [known issues](docs/known-issues.md) and the [development log](docs/development-log.md).
+LiveSub's source code is released under the [MIT License](LICENSE). Models are downloaded separately and keep their own licenses; see the [model manifest](docs/model-manifest.md).
