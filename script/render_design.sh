@@ -13,8 +13,9 @@ swiftc -swift-version 6 -parse-as-library -I .build/debug \
   .build/debug/LiveSubOverlay.o .build/debug/LiveSubSubtitles.o \
   .build/debug/SpeakerKit.o .build/debug/WhisperKit.o .build/debug/ArgmaxCore.o \
   app/LiveSub/App/AppController.swift app/LiveSub/App/TerminologySettingsView.swift \
-  app/LiveSub/App/Theme.swift \
+  app/LiveSub/App/Theme.swift app/LiveSub/App/RuntimeSetup.swift \
   "$scratch_dir/LiveSubApp.swift" app/LiveSub/MainWindow/TranscriptView.swift \
+  app/LiveSub/MainWindow/RuntimeSetupView.swift \
   script/render_design.swift -o "$scratch_dir/render"
 "$scratch_dir/render" "$@"
 if [[ "${1:-}" != "--settings-only" ]]; then

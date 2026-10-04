@@ -68,13 +68,22 @@ LiveSub 的语音转文字一直在本地模型上运行。最初的版本使用
 ## 系统要求
 
 - Apple Silicon（M 系列）Mac，macOS 15 或更新。开发与测试在 macOS 27 上进行，更早的版本尚未实测。
-- Xcode Command Line Tools（含 Swift）与 [uv](https://docs.astral.sh/uv/)。
-- 约 12 GB 可用空间。识别模型约 4.7 GB，翻译模型约 2.3 GB，都存放在 `~/Library/Application Support/LiveSub/models/`，不会进入仓库或 App。
-- 第一次下载模型需要联网；之后识别与翻译都在本地进行。
+- 约 10 GB 可用空间。LiveSub 第一次打开时会把 Python 运行环境（约 1.6 GB）、语音识别模型（约 4.7 GB）和翻译模型（约 2.3 GB）下载到 `~/Library/Application Support/LiveSub/`。
+- 第一次下载需要联网；之后识别与翻译都可以离线进行。
 
 ## 安装
 
-目前还没有预编译的下载包，LiveSub 需要从源码构建。主要耗时在下载模型。
+**1. 下载**——从 [Releases](https://github.com/Cis-jujube/LiveSub/releases/latest) 下载 `LiveSub-0.1.0.dmg`（18 MB），打开后把 **LiveSub** 拖进 **应用程序**。
+
+**2. 第一次打开**——LiveSub 没有经过 Apple 公证，macOS 会提示无法验证开发者。点 **完成**，打开 **系统设置 → 隐私与安全性**，在页面下方找到 LiveSub，点 **仍要打开**，再确认 **打开**。只需要做这一次。
+
+**3. 下载模型**——LiveSub 会显示欢迎页。点 **开始下载**，它会自己准备 Python 运行环境并下载两个模型（约 8.6 GB），全程有进度条；不需要安装其他东西，也不用打开终端。默认服务器慢或连不上时，会自动切换到国内镜像。可以随时取消，下次打开会从中断处继续。
+
+下载完成后会进入主窗口，LiveSub 就可以使用了。安装后第一次点 **开始** 需要从头加载模型，可能要等一两分钟；之后会快很多。
+
+### 从源码构建
+
+适合开发者。需要 Xcode Command Line Tools（含 Swift）与 [uv](https://docs.astral.sh/uv/)。
 
 **1. 获取源码**
 
@@ -91,7 +100,7 @@ macOS 把麦克风、屏幕与系统音频录制权限绑定在 App 的签名上
 security find-identity -v -p codesigning
 ```
 
-**3. 准备模型与 App（只需一次）**
+**3. 构建 App 并准备模型（只需一次）**
 
 ```bash
 export LIVESUB_SIGNING_IDENTITY="你的证书 SHA-1（40 位十六进制）"
@@ -130,7 +139,7 @@ App 会自己启动并管理一个只监听 `127.0.0.1` 的本地后端，不需
 
 LiveSub 是一个个人项目，处于部分验收阶段：
 
-- App 未经 Apple 公证，需要按上面的步骤自行构建和签名。
+- App 未经 Apple 公证，第一次打开需要点 **仍要打开**（见[安装](#安装)）。
 - 日常使用中的识别准确率、多人对话、长时间运行以及全屏 / 多屏下的悬浮字幕仍在验证中。
 - 受系统或媒体版权保护的声音可能无法采集。
 
@@ -142,6 +151,7 @@ LiveSub 是一个个人项目，处于部分验收阶段：
 ./script/test.sh                     # 后端测试、Swift 检查与调试构建
 ./script/build_and_run.sh --verify   # 构建并校验 release 版 .app，不打开
 ./script/render_design.sh            # 用示例文本渲染界面截图到 design/previews/
+./script/package_release.sh          # 把 dist/LiveSub.app 打包成签名的拖拽安装 DMG
 ```
 
 | 目录 | 内容 |

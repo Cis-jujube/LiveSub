@@ -105,6 +105,15 @@ struct DesignRender {
         try render(controller, mode: .bilingual, width: 1080, height: 720, dark: true, name: "bilingual-dark.png")
         try render(AppController(), mode: .bilingual, width: 1080, height: 720, dark: false, name: "empty-1080.png")
         try render(AppController(), mode: .bilingual, width: 1080, height: 720, dark: true, name: "empty-dark.png")
+        // First-launch download screen, shown until the runtime and models exist.
+        let firstRun = AppController()
+        firstRun.setup.showPreview(.needed)
+        try render(firstRun, mode: .bilingual, width: 1080, height: 720, dark: false, name: "setup-welcome.png")
+        firstRun.setup.showPreview(.running, step: 1, downloaded: 3_420_000_000, speed: 18_400_000)
+        try render(firstRun, mode: .bilingual, width: 1080, height: 720, dark: false, name: "setup-downloading.png")
+        try render(firstRun, mode: .bilingual, width: 1080, height: 720, dark: true, name: "setup-downloading-dark.png")
+        firstRun.setup.showPreview(.failed("「下载语音识别模型」没有完成。请检查网络后点「重试」，已下载的部分会保留。"), step: 1, downloaded: 2_100_000_000, mirror: true)
+        try render(firstRun, mode: .bilingual, width: 1080, height: 720, dark: false, name: "setup-failed.png")
     }
 
     @MainActor static func render(_ controller: AppController, mode: SubtitleDisplayMode, width: CGFloat, height: CGFloat, dark: Bool, name: String) throws {

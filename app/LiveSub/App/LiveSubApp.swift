@@ -7,6 +7,12 @@ struct LiveSubApp: App {
     @NSApplicationDelegateAdaptor(LiveSubApplicationDelegate.self) private var delegate
     @StateObject private var controller = AppController()
 
+    init() {
+        if CommandLine.arguments.contains("--prepare-runtime") {
+            RuntimeSetup.runHeadlessAndExit()
+        }
+    }
+
     var body: some Scene {
         WindowGroup("LiveSub", id: "main") {
             TranscriptView(controller: controller)

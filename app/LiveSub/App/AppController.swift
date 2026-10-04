@@ -76,6 +76,7 @@ public final class AppController: ObservableObject {
 
     public let store = SubtitleStore()
     public let inputLevel = InputLevelMeter()
+    public let setup = RuntimeSetup()
     private let backend = BackendClient()
     private let capture = AudioCaptureService()
     private let speakerDetector = SpeakerDetectionService()
@@ -120,7 +121,7 @@ public final class AppController: ObservableObject {
         }
     }
 
-    public var canStart: Bool { !transitioning && !speakerModelLoading && (phase == "idle" || phase == "error") }
+    public var canStart: Bool { setup.isReady && !transitioning && !speakerModelLoading && (phase == "idle" || phase == "error") }
     public var canPause: Bool { !transitioning && phase == "listening" }
     public var canResume: Bool { !transitioning && phase == "paused" }
     public var canStop: Bool { !transitioning && phase != "idle" }
@@ -395,6 +396,7 @@ public final class AppController: ObservableObject {
     public func shutdown() async {
         guard !shuttingDown else { return }
         shuttingDown = true
+        setup.stopForQuit()
         desiredListening = false
         await stopCapture()
         overlay.hide()

@@ -99,10 +99,20 @@ xcrun swiftc -O -parse-as-library -target arm64-apple-macos15.0 \
 rsync -a \
   --exclude '__pycache__/' --exclude '*.pyc' \
   --exclude 'asr/r2t2.py' --exclude 'asr/download_model.py' \
-  --exclude 'asr/download_qwen.py' \
-  --exclude 'translation/benchmark.py' --exclude 'translation/download_model.py' \
+  --exclude 'translation/benchmark.py' \
   backend/livesub/ "$backend_dir/livesub/"
 cp backend/pyproject.toml backend/uv.lock "$backend_dir/"
+# First-launch setup (RuntimeSetup.swift) uses a bundled, self-contained uv to create the
+# Python runtime from uv.lock, then downloads the pinned models with the scripts above.
+uv_source="${LIVESUB_UV:-$(command -v uv || true)}"
+uv_source="${uv_source:A}"
+if [[ ! -x "$uv_source" ]] || otool -L "$uv_source" | tail -n +2 | grep -qv -e '/usr/lib/' -e '/System/Library/'; then
+  print -u2 "A self-contained uv binary is required (set LIVESUB_UV). Found: ${uv_source:-none}"
+  exit 1
+fi
+mkdir -p "$resources_dir/bin"
+cp "$uv_source" "$resources_dir/bin/uv"
+chmod 755 "$resources_dir/bin/uv"
 
 iconset_dir="$icon_temp_dir/LiveSubIcon.iconset"
 mkdir -p "$iconset_dir"
@@ -141,10 +151,14 @@ PLIST
 
 plutil -lint "$app_dir/Contents/Info.plist"
 codesign --force --sign "$sign_identity" "$resources_dir/LiveSubNativeTranslation"
+codesign --force --sign "$sign_identity" "$resources_dir/bin/uv"
 codesign --force --deep --sign "$sign_identity" "$app_dir"
 codesign --verify --deep --strict "$app_dir"
 test -x "$macos_dir/LiveSub"
 test -f "$backend_dir/uv.lock"
+test -x "$resources_dir/bin/uv"
+test -f "$backend_dir/livesub/asr/download_qwen.py"
+test -f "$backend_dir/livesub/translation/download_model.py"
 test -s "$resources_dir/LiveSubIcon.icns"
 if [[ -e "$target_app_dir" ]]; then
   mkdir -p "${previous_app_dir:h}"

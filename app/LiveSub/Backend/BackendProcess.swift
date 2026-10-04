@@ -2,6 +2,21 @@ import Foundation
 import Security
 import Darwin
 
+/// Where the downloaded Python runtime and models live, and whether they are complete.
+public enum LiveSubRuntime {
+    /// `~/Library/Application Support/LiveSub`, or `LIVESUB_SUPPORT_ROOT` for isolated setup tests.
+    public static var supportRoot: URL {
+        if let override = ProcessInfo.processInfo.environment["LIVESUB_SUPPORT_ROOT"], !override.isEmpty {
+            return URL(fileURLWithPath: override, isDirectory: true)
+        }
+        let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support")
+        return support.appendingPathComponent("LiveSub", isDirectory: true)
+    }
+
+    public static var isReady: Bool { (try? BackendPaths.locate()) != nil }
+}
+
 struct BackendPaths {
     let source: URL
     let python: URL
@@ -9,10 +24,7 @@ struct BackendPaths {
 
     static func locate() throws -> BackendPaths {
         let manager = FileManager.default
-        guard let support = manager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
-            throw BackendClientError.environmentMissing("~/Library/Application Support/LiveSub")
-        }
-        let root = support.appendingPathComponent("LiveSub", isDirectory: true)
+        let root = LiveSubRuntime.supportRoot
         let models = root.appendingPathComponent("models", isDirectory: true)
 
         if Bundle.main.bundleURL.pathExtension == "app" {

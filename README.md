@@ -68,13 +68,22 @@ A small sample of one real recording and four synthetic ones; it is not a genera
 ## Requirements
 
 - An Apple Silicon (M-series) Mac running macOS 15 or later. Developed and tested on macOS 27; earlier versions are untested.
-- Xcode Command Line Tools (with Swift) and [uv](https://docs.astral.sh/uv/).
-- About 12 GB of free space. The recognition model is about 4.7 GB and the translation model about 2.3 GB; both live in `~/Library/Application Support/LiveSub/models/`, never in the repository or the app.
-- Downloading the models the first time needs internet; after that, recognition and translation run locally.
+- About 10 GB of free space. On first launch LiveSub downloads its Python runtime (about 1.6 GB), the speech recognition model (about 4.7 GB) and the translation model (about 2.3 GB) into `~/Library/Application Support/LiveSub/`.
+- An internet connection for that first download; after that, recognition and translation run offline.
 
 ## Install
 
-There is no prebuilt download yet, so LiveSub is built from source. Most of the time goes into downloading the models.
+**1. Download** — get `LiveSub-0.1.0.dmg` (18 MB) from [Releases](https://github.com/Cis-jujube/LiveSub/releases/latest), open it, and drag **LiveSub** into **Applications**.
+
+**2. Open it the first time** — LiveSub is not notarized by Apple, so macOS says it cannot verify the developer. Click **Done**, open **System Settings → Privacy & Security**, scroll down and click **Open Anyway** next to LiveSub, then confirm **Open**. You only do this once.
+
+**3. Download the models** — LiveSub opens on a welcome screen. Click **开始下载** (Start download). It prepares its own Python runtime and downloads the two models (about 8.6 GB) with a progress bar; nothing else to install, no Terminal. If the default servers are slow or unreachable, it switches to mirrors in mainland China automatically. You can cancel at any time, and the next launch resumes where it stopped.
+
+When the download finishes, the main window appears and LiveSub is ready. The very first **开始** (Start) after installing loads the models from scratch and can take a couple of minutes; later starts are faster.
+
+### Build from source
+
+For developers. You need Xcode Command Line Tools (with Swift) and [uv](https://docs.astral.sh/uv/).
 
 **1. Get the source**
 
@@ -91,7 +100,7 @@ macOS ties microphone and screen & system audio recording permissions to the app
 security find-identity -v -p codesigning
 ```
 
-**3. Prepare the models and the app (once)**
+**3. Build the app and prepare the models (once)**
 
 ```bash
 export LIVESUB_SIGNING_IDENTITY="your certificate's SHA-1 (40 hex characters)"
@@ -130,7 +139,7 @@ The menu-bar icon can also start, pause, show floating captions and change capti
 
 LiveSub is a personal project and is partially validated:
 
-- The app is not notarized by Apple; build and sign it yourself as described above.
+- The app is not notarized by Apple, so the first launch needs **Open Anyway** (see [Install](#install)).
 - Recognition accuracy in everyday use, multi-speaker conversations, long sessions and floating captions in full-screen or multi-display setups are still being tested.
 - Audio protected by the system or by media copyright may not be capturable.
 
@@ -142,6 +151,7 @@ Test methods and data: [known issues](docs/known-issues.md), [manual test matrix
 ./script/test.sh                     # backend tests, Swift checks and a debug build
 ./script/build_and_run.sh --verify   # build and verify the release .app without opening it
 ./script/render_design.sh            # render interface screenshots with sample text into design/previews/
+./script/package_release.sh          # package dist/LiveSub.app into a signed drag-to-install DMG
 ```
 
 | Folder | Contents |

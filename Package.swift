@@ -20,7 +20,7 @@ let package = Package(
             dependencies: ["LiveSubAudio", "LiveSubBackend", "LiveSubOverlay", "LiveSubSubtitles"],
             path: "app/LiveSub",
             exclude: ["Audio", "Backend", "Overlay", "Subtitles"],
-            sources: ["App/AppController.swift", "App/LiveSubApp.swift", "App/TerminologySettingsView.swift", "App/Theme.swift", "MainWindow/TranscriptView.swift"]
+            sources: ["App/AppController.swift", "App/LiveSubApp.swift", "App/RuntimeSetup.swift", "App/TerminologySettingsView.swift", "App/Theme.swift", "MainWindow/RuntimeSetupView.swift", "MainWindow/TranscriptView.swift"]
         ),
         .target(
             name: "LiveSubAudio",

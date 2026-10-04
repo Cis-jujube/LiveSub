@@ -6,6 +6,7 @@ import SwiftUI
 struct TranscriptView: View {
     @ObservedObject private var controller: AppController
     @ObservedObject private var store: SubtitleStore
+    @ObservedObject private var setup: RuntimeSetup
     @Environment(\.openSettings) private var openSettings
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var viewState = TranscriptViewState()
@@ -15,9 +16,25 @@ struct TranscriptView: View {
     init(controller: AppController) {
         _controller = ObservedObject(wrappedValue: controller)
         _store = ObservedObject(wrappedValue: controller.store)
+        _setup = ObservedObject(wrappedValue: controller.setup)
     }
 
     var body: some View {
+        Group {
+            if setup.isReady {
+                readingSurface
+            } else {
+                RuntimeSetupView(setup: setup)
+            }
+        }
+        .frame(minWidth: 820, minHeight: 560)
+        .background(Theme.paper)
+        .toolbarBackground(.hidden, for: .windowToolbar)
+        .tint(Theme.accent)
+        .modifier(MainToolbar(enabled: setup.isReady, leading: { leadingToolbar }, trailing: { trailingToolbar }, session: { sessionToolbar }))
+    }
+
+    private var readingSurface: some View {
         GeometryReader { geometry in
             let layout = ReadingLayout(
                 width: geometry.size.width,
@@ -30,11 +47,6 @@ struct TranscriptView: View {
                 transcript(layout, height: geometry.size.height)
             }
         }
-        .frame(minWidth: 820, minHeight: 560)
-        .background(Theme.paper)
-        .toolbarBackground(.hidden, for: .windowToolbar)
-        .tint(Theme.accent)
-        .modifier(MainToolbar(leading: { leadingToolbar }, trailing: { trailingToolbar }, session: { sessionToolbar }))
     }
 
     // MARK: Toolbar
@@ -691,12 +703,16 @@ private struct ReadingLayout {
 }
 
 private struct MainToolbar<Leading: View, Trailing: View, Session: View>: ViewModifier {
+    /// The first-launch setup screen has no toolbar; its only action is in the content.
+    let enabled: Bool
     @ViewBuilder let leading: () -> Leading
     @ViewBuilder let trailing: () -> Trailing
     @ViewBuilder let session: () -> Session
 
     func body(content: Content) -> some View {
-        if #available(macOS 26.0, *) {
+        if !enabled {
+            content
+        } else if #available(macOS 26.0, *) {
             content.toolbar {
                 ToolbarItem(placement: .navigation) { leading() }
                 ToolbarSpacer(.flexible)

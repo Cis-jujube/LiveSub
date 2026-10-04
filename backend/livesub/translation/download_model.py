@@ -37,8 +37,9 @@ def verify_model(path: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--verify-only", action="store_true")
+    parser.add_argument("--model-dir", type=Path, default=default_model_path())
     args = parser.parse_args()
-    path = default_model_path()
+    path = args.model_dir
     if args.verify_only:
         verify_model(path)
         print(f"Verified {REPO_ID}@{REVISION} at {path}")
