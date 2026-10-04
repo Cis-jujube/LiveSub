@@ -1,0 +1,981 @@
+[
+  {
+    "id": "regression-ai-agent",
+    "text": "The AI agent can use tools.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "AI Agent"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-ai-agent-plural",
+    "text": "Two AI agents cooperate.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "AI Agents"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-software-agent",
+    "text": "This software agent runs locally.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "Agent"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-context-agent",
+    "text": "The agent chooses a tool.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "Agent"
+    ],
+    "forbidden": [],
+    "context": [
+      [
+        "We are building an LLM system.",
+        "我们正在构建大语言模型系统。"
+      ]
+    ],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-old-wrong-term",
+    "text": "The AI agent uses a context window.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "AI Agent",
+      "上下文窗口"
+    ],
+    "forbidden": [
+      "代理人"
+    ],
+    "context": [
+      [
+        "The AI agent plans tasks.",
+        "AI代理人规划任务。"
+      ]
+    ],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-llm-tokens",
+    "text": "The LLM prompt contains 32 tokens.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "32",
+      "tokens"
+    ],
+    "forbidden": [
+      "令牌"
+    ],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-context-token",
+    "text": "Each token has a cost.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "token"
+    ],
+    "forbidden": [],
+    "context": [
+      [
+        "We discuss large language models.",
+        "我们讨论大语言模型。"
+      ]
+    ],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-real-estate",
+    "text": "The real estate agent sold a house.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "房"
+    ],
+    "forbidden": [
+      "Agent",
+      "agent"
+    ],
+    "context": [
+      [
+        "We discuss AI agents.",
+        "我们讨论AI Agent。"
+      ]
+    ],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-travel-agent",
+    "text": "The travel agent booked a flight.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "航班"
+    ],
+    "forbidden": [
+      "Agent"
+    ],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-auth-token",
+    "text": "The authentication token expires in 60 seconds.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "60",
+      "令牌"
+    ],
+    "forbidden": [],
+    "context": [
+      [
+        "The LLM uses tokens.",
+        "大语言模型使用tokens。"
+      ]
+    ],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-token-gratitude",
+    "text": "She gave him a token of appreciation.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [],
+    "forbidden": [
+      "token",
+      "令牌"
+    ],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-word-boundaries",
+    "text": "Tokenization does not change the reagent.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "试剂"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-negation",
+    "text": "The AI agent must not delete 42 files or expose the password.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "AI Agent",
+      "42"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-unfinished",
+    "text": "If the AI agent cannot",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "AI Agent"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-custom-name",
+    "text": "Jujube built the AI agent.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "枣枣",
+      "AI Agent"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": [
+        {
+          "source_language": "en",
+          "source": "Jujube",
+          "target": "枣枣"
+        }
+      ]
+    }
+  },
+  {
+    "id": "regression-custom-product",
+    "text": "LiveMind processes prompts locally.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "灵思"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": [
+        {
+          "source_language": "en",
+          "source": "LiveMind",
+          "target": "灵思"
+        }
+      ]
+    }
+  },
+  {
+    "id": "regression-custom-override",
+    "text": "The AI agent reads a prompt.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "智能体"
+    ],
+    "forbidden": [
+      "AI Agent"
+    ],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": [
+        {
+          "source_language": "en",
+          "source": "AI agent",
+          "target": "智能体"
+        }
+      ]
+    }
+  },
+  {
+    "id": "regression-general-profile",
+    "text": "The real estate agent requests an access token.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "房",
+      "令牌"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "general",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-zh-english",
+    "text": "大语言模型的上下文窗口有4096个token。",
+    "category": "sentence",
+    "source_language": "zh",
+    "target_language": "en",
+    "required": [
+      "4096",
+      "context window",
+      "token"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-context-four-old",
+    "text": "Each token has a cost.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "token"
+    ],
+    "forbidden": [],
+    "context": [
+      [
+        "We discuss large language models.",
+        "我们讨论大语言模型。"
+      ],
+      [
+        "This is our first slide.",
+        "这是第一张幻灯片。"
+      ],
+      [
+        "Let's continue.",
+        "我们继续。"
+      ]
+    ],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-next-token",
+    "text": "The model predicts the next token.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "token"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-input-tokens",
+    "text": "We used 500 input tokens.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "500",
+      "tokens"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-new-plural",
+    "text": "Three software agents exchange messages.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "Agents"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-new-real-estate",
+    "text": "My real estate agent will call tomorrow.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "房"
+    ],
+    "forbidden": [
+      "Agent"
+    ],
+    "context": [
+      [
+        "We train large language models.",
+        "我们训练大语言模型。"
+      ]
+    ],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-new-refresh-token",
+    "text": "Do not log the refresh token.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "令牌"
+    ],
+    "forbidden": [],
+    "context": [
+      [
+        "Our LLM serves AI agents.",
+        "我们的大语言模型服务AI Agent。"
+      ]
+    ],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-new-three-context",
+    "text": "The agent checks each token.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "Agent",
+      "token"
+    ],
+    "forbidden": [],
+    "context": [
+      [
+        "We study LLM agents.",
+        "我们研究大语言模型Agent。"
+      ],
+      [
+        "This diagram shows the system.",
+        "此图展示系统。"
+      ],
+      [
+        "Now look at the last step.",
+        "现在看最后一步。"
+      ]
+    ],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-new-negation",
+    "text": "The AI agent did not spend 90 output tokens.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "AI Agent",
+      "90",
+      "tokens"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-new-chinese",
+    "text": "不要扩大大语言模型的上下文窗口。",
+    "category": "sentence",
+    "source_language": "zh",
+    "target_language": "en",
+    "required": [
+      "context window"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-holdout-budget",
+    "text": "The input token budget is 700.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "token",
+      "700"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-holdout-next",
+    "text": "A language model predicts tokens one at a time.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "tokens"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-holdout-repeat",
+    "text": "An AI agent asks another AI agent to wait.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "AI Agent"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-holdout-auth",
+    "text": "Keep the authentication token secret.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "令牌"
+    ],
+    "forbidden": [],
+    "context": [
+      [
+        "Our LLM uses tokens.",
+        "大语言模型使用tokens。"
+      ]
+    ],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-holdout-old-translation",
+    "text": "The AI agent starts now.",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "AI Agent"
+    ],
+    "forbidden": [
+      "代理人"
+    ],
+    "context": [
+      [
+        "The AI agent waits.",
+        "人工智能代理人等待。"
+      ]
+    ],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "regression-holdout-unfinished",
+    "text": "Because the software agent has not",
+    "category": "sentence",
+    "source_language": "en",
+    "target_language": "zh",
+    "required": [
+      "Agent"
+    ],
+    "forbidden": [],
+    "context": [],
+    "settings": {
+      "version": 1,
+      "profile": "ai",
+      "entries": []
+    }
+  },
+  {
+    "id": "cncf-term-observability",
+    "text": "observability.",
+    "category": "isolated_term",
+    "required": [
+      "可观测性"
+    ],
+    "forbidden": []
+  },
+  {
+    "id": "cncf-sentence-observability",
+    "text": "We must not disable observability during the 3.5-hour outage.",
+    "category": "sentence",
+    "required": [
+      "可观测性"
+    ],
+    "forbidden": [
+      "__LS"
+    ],
+    "required_any": [
+      [
+        "3.5",
+        "三个半",
+        "三点五"
+      ]
+    ]
+  },
+  {
+    "id": "cncf-term-container-orchestration",
+    "text": "container orchestration!",
+    "category": "isolated_term",
+    "required": [
+      "容器编排"
+    ],
+    "forbidden": []
+  },
+  {
+    "id": "cncf-sentence-container-orchestration",
+    "text": "Container orchestration manages 12 services, but it must not remove healthy containers.",
+    "category": "sentence",
+    "required": [
+      "容器编排",
+      "12"
+    ],
+    "forbidden": [
+      "__LS"
+    ]
+  },
+  {
+    "id": "cncf-term-service-mesh",
+    "text": "service mesh?",
+    "category": "isolated_term",
+    "required": [
+      "服务网格"
+    ],
+    "forbidden": []
+  },
+  {
+    "id": "cncf-sentence-service-mesh",
+    "text": "The service mesh uses 42 routes and must not expose the password.",
+    "category": "sentence",
+    "required": [
+      "服务网格",
+      "42"
+    ],
+    "forbidden": [
+      "__LS"
+    ]
+  },
+  {
+    "id": "cncf-term-load-balancer",
+    "text": "load balancer.",
+    "category": "isolated_term",
+    "required": [
+      "负载均衡器"
+    ],
+    "forbidden": []
+  },
+  {
+    "id": "cncf-sentence-load-balancer",
+    "text": "The load balancer sends traffic to 2 servers, not 3.",
+    "category": "sentence",
+    "required": [
+      "负载均衡器",
+      "2",
+      "3"
+    ],
+    "forbidden": [
+      "__LS"
+    ]
+  },
+  {
+    "id": "cncf-term-event-driven-architecture",
+    "text": "event-driven architecture!",
+    "category": "isolated_term",
+    "required": [
+      "事件驱动架构"
+    ],
+    "forbidden": []
+  },
+  {
+    "id": "cncf-sentence-event-driven-architecture",
+    "text": "The event-driven architecture processes 500 events without storing user passwords.",
+    "category": "sentence",
+    "required": [
+      "事件驱动架构",
+      "500"
+    ],
+    "forbidden": [
+      "__LS"
+    ]
+  },
+  {
+    "id": "cncf-term-idempotence",
+    "text": "idempotence?",
+    "category": "isolated_term",
+    "required": [
+      "幂等性"
+    ],
+    "forbidden": []
+  },
+  {
+    "id": "cncf-sentence-idempotence",
+    "text": "Idempotence means that retrying the same request 3 times must not create 3 orders.",
+    "category": "sentence",
+    "required": [
+      "幂等性"
+    ],
+    "forbidden": [
+      "__LS"
+    ],
+    "required_any": [
+      [
+        "3",
+        "三"
+      ]
+    ]
+  },
+  {
+    "id": "cncf-sentence-distributed-systems",
+    "text": "Distributed systems failed for 0.03 seconds, not 0.3 seconds.",
+    "category": "sentence",
+    "required": [
+      "分布式系统",
+      "0.03",
+      "0.3",
+      "故障"
+    ],
+    "forbidden": [
+      "__LS"
+    ]
+  },
+  {
+    "id": "cncf-term-continuous-delivery",
+    "text": "continuous delivery!",
+    "category": "isolated_term",
+    "required": [
+      "持续交付"
+    ],
+    "forbidden": []
+  },
+  {
+    "id": "cncf-sentence-continuous-delivery",
+    "text": "Continuous delivery prepares a release, but it does not deploy it automatically.",
+    "category": "sentence",
+    "required": [
+      "持续交付"
+    ],
+    "forbidden": [
+      "__LS"
+    ]
+  },
+  {
+    "id": "en-finance-1",
+    "source_language": "en",
+    "text": "The central bank raised interest rates by 25 basis points.",
+    "category": "sentence",
+    "required": [
+      "25",
+      "基点"
+    ],
+    "forbidden": []
+  },
+  {
+    "id": "en-finance-2",
+    "source_language": "en",
+    "text": "The Sharpe ratio fell although returns rose.",
+    "category": "sentence",
+    "required": [
+      "夏普比率"
+    ],
+    "forbidden": []
+  },
+  {
+    "id": "en-security",
+    "source_language": "en",
+    "text": "The access token expired; do not confuse it with a security token.",
+    "category": "sentence",
+    "required": [
+      "令牌",
+      "证券型代币"
+    ],
+    "forbidden": []
+  },
+  {
+    "id": "en-negation",
+    "source_language": "en",
+    "text": "The customer brought their own wine, and we neither charged a corkage fee nor prohibited them from drinking it.",
+    "category": "sentence",
+    "required": [],
+    "forbidden": []
+  },
+  {
+    "id": "en-statistics",
+    "source_language": "en",
+    "text": "The p-value is 0.03, not 0.3.",
+    "category": "sentence",
+    "required": [
+      "0.03",
+      "0.3"
+    ],
+    "forbidden": []
+  },
+  {
+    "id": "en-time",
+    "source_language": "en",
+    "text": "We have 3.5 hours left.",
+    "category": "sentence",
+    "required": [],
+    "forbidden": [],
+    "required_any": [
+      [
+        "3.5",
+        "三个半",
+        "三点五"
+      ]
+    ]
+  },
+  {
+    "id": "term-context",
+    "text": "Context window.",
+    "category": "isolated_term",
+    "required": [
+      "上下文窗口"
+    ],
+    "forbidden": []
+  },
+  {
+    "id": "term-confidence",
+    "text": "Confidence interval!",
+    "category": "isolated_term",
+    "required": [
+      "置信区间"
+    ],
+    "forbidden": []
+  },
+  {
+    "id": "term-sharpe",
+    "text": "Sharpe ratio",
+    "category": "isolated_term",
+    "required": [
+      "夏普比率"
+    ],
+    "forbidden": []
+  },
+  {
+    "id": "term-api",
+    "text": "API endpoint?",
+    "category": "isolated_term",
+    "required": [
+      "API 端点"
+    ],
+    "forbidden": []
+  },
+  {
+    "id": "term-custom",
+    "text": "Jujube.",
+    "category": "isolated_term",
+    "required": [
+      "枣枣"
+    ],
+    "forbidden": []
+  }
+]

@@ -25,13 +25,7 @@ from websockets.exceptions import ConnectionClosed, InvalidStatus
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
 
-from livesub.asr.download_model import (
-    GGUF_REPO,
-    GGUF_REVISION,
-    PROCESSOR_REPO,
-    PROCESSOR_REVISION,
-    verify_model as verify_asr_model,
-)
+from livesub.asr.download_qwen import MODEL_ID as ASR_REPO, REVISION as ASR_REVISION, verify as verify_asr_model
 from livesub.translation.download_model import (
     REPO_ID as TRANSLATION_REPO,
     REVISION as TRANSLATION_REVISION,
@@ -53,7 +47,7 @@ def read_pcm16(path: Path) -> bytes:
 
 def verify_pinned_models(model_root: Path) -> float:
     started = perf_counter()
-    verify_asr_model(model_root / "r2t2")
+    verify_asr_model(model_root / "Qwen3-ASR-1.7B")
     verify_translation_model(model_root / "Qwen3-4B-Instruct-2507-4bit")
     return (perf_counter() - started) * 1000
 
@@ -260,10 +254,8 @@ async def run(args: argparse.Namespace) -> int:
         "frames_sent": 0,
         "unauthorized_rejected": False,
         "failure_codes": [],
-        "asr_model_repo": GGUF_REPO,
-        "asr_model_revision": GGUF_REVISION,
-        "asr_processor_repo": PROCESSOR_REPO,
-        "asr_processor_revision": PROCESSOR_REVISION,
+        "asr_model_repo": ASR_REPO,
+        "asr_model_revision": ASR_REVISION,
         "translation_model_repo": TRANSLATION_REPO,
         "translation_model_revision": TRANSLATION_REVISION,
         "model_assets_verified": False,
@@ -284,9 +276,7 @@ async def run(args: argparse.Namespace) -> int:
     env["LIVESUB_AUTH_TOKEN"] = token
     model_root = Path.home() / "Library/Application Support/LiveSub/models"
     env["LIVESUB_MODEL_ROOT"] = str(model_root)
-    env["PYTHONPATH"] = os.pathsep.join(
-        [str(ROOT / "backend"), str(ROOT / "third_party/Confucius4-R2T2"), env.get("PYTHONPATH", "")]
-    )
+    env["PYTHONPATH"] = os.pathsep.join([str(ROOT / "backend"), env.get("PYTHONPATH", "")])
 
     with tempfile.TemporaryFile() as stderr_file:
         try:
@@ -399,6 +389,13 @@ async def run(args: argparse.Namespace) -> int:
         stop_sent=stop_sent,
         expected_tail=args.expected_tail_substring,
     )
+    if args.include_text:
+        report["final_pairs"] = [
+            {"source": segment["source_text"], "translation": segment["target_text"]}
+            for _, event in events if event.get("kind") == "subtitle"
+            for segment in [event["segment"]]
+            if segment.get("source_final") and segment.get("translation_state") == "final"
+        ]
     checks = (
         report["unauthorized_rejected"]
         and report["model_assets_verified"]
@@ -430,6 +427,7 @@ def main() -> None:
     parser.add_argument("--language", choices=("English", "Chinese"), required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--expected-tail-substring")
+    parser.add_argument("--include-text", action="store_true", help="public or synthetic audio only; writes full recognized text")
     parser.add_argument("--startup-timeout", type=float, default=180)
     parser.add_argument("--stop-timeout", type=float, default=30)
     args = parser.parse_args()

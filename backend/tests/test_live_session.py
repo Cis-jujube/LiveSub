@@ -1,9 +1,13 @@
 import asyncio
 import threading
+from types import SimpleNamespace
+
+import numpy as np
 
 import livesub.session as session_module
 
 from livesub.asr.base import ASREvent
+from livesub.asr.qwen import QwenASREngine
 from livesub.protocol import AudioFrame
 from livesub.session import LiveSession
 from livesub.translation.base import TranslationResult
@@ -56,6 +60,101 @@ class FakeTranslator:
         )
 
 
+def test_audio_burst_decodes_latest_preview_and_preserves_every_sample():
+    class RecordingModel:
+        def __init__(self):
+            self.audio = []
+
+        def transcribe(self, *, audio, language):
+            self.audio.append(audio[0].copy())
+            return [SimpleNamespace(text="hello")]
+
+    async def run():
+        events = []
+
+        async def emit(event):
+            events.append(event)
+
+        model = RecordingModel()
+        asr = QwenASREngine(lambda: model, language="English")
+        session = LiveSession(asr, FakeTranslator(), emit)
+        assert await session.start("burst", 1, "en", "zh")
+        frames = [np.full(2560, 1000 + index, dtype="<i2") for index in range(30)]
+        for index, samples in enumerate(frames):
+            assert session.push_audio(AudioFrame("burst", 1, index, index * 2560,
+                                                 16_000, 1, samples.tobytes()))
+        # Wait for the consumer to emit a preview without stopping the stream.
+        async with asyncio.timeout(2):
+            while not any(event["kind"] == "subtitle" for event in events):
+                await asyncio.sleep(0.001)
+        assert len(model.audio) == 1
+        np.testing.assert_array_equal(model.audio[0], np.concatenate(frames).astype(np.float32) / 32768)
+        preview = next(event["segment"] for event in events if event["kind"] == "subtitle")
+        assert preview["end_ms"] == 4_800 and not preview["source_final"]
+        assert await session.stop()
+        assert len(model.audio) == 1  # The final reuses the exact latest preview.
+        assert any(event["kind"] == "subtitle" and event["segment"]["source_final"]
+                   for event in events)
+        await session.close()
+
+    asyncio.run(run())
+
+
+def test_labeled_speaker_turns_translate_only_selected_people():
+    class TurnASR:
+        def __init__(self):
+            self.text = ""
+
+        def start(self, *, sample_rate):
+            assert sample_rate == 16_000
+
+        def push(self, pcm16):
+            self.text = chr(pcm16[0])
+            return [ASREvent(self.text, 0, 160, final=False)]
+
+        def finish(self):
+            return [ASREvent(self.text, 0, 160, final=True)] if self.text else []
+
+        def reset(self):
+            self.text = ""
+
+    class RecordingTranslator(FakeTranslator):
+        def __init__(self):
+            self.sources = []
+
+        def translate(self, request):
+            self.sources.append(request.source_text)
+            return super().translate(request)
+
+    async def run():
+        events = []
+
+        async def emit(event):
+            events.append(event)
+
+        translator = RecordingTranslator()
+        session = LiveSession(TurnASR(), translator, emit)
+        assert await session.start("speakers", 1, "en", "zh")
+        await session.select_speakers(["A", "C"])
+        for index, speaker in enumerate("ABCDE"):
+            assert session.push_audio(AudioFrame(
+                "speakers", 1, index, index * 2560, 16_000, 1,
+                bytes([ord(speaker), 0]) * 2560, speaker_id=speaker,
+            ))
+        assert await session.stop()
+        finals = [event["segment"] for event in events if event["kind"] == "subtitle"
+                  and event["segment"]["source_final"]]
+        assert {segment["speaker_id"] for segment in finals} == set("ABCDE")
+        assert {segment["speaker_id"] for segment in finals
+                if segment["translation_state"] == "final"} == {"A", "C"}
+        assert {segment["speaker_id"] for segment in finals
+                if segment["translation_state"] == "skipped"} == {"B", "D", "E"}
+        assert set(translator.sources) == {"A", "C"}
+        await session.close()
+
+    asyncio.run(run())
+
+
 def test_real_session_path_keeps_source_and_translation_in_one_segment():
     async def run():
         events = []
@@ -79,8 +178,43 @@ def test_real_session_path_keeps_source_and_translation_in_one_segment():
             for segment in subtitles
         )
         assert len({segment["segment_id"] for segment in subtitles}) == 1
+        assert not session._revisions and not session._metadata
+        assert not session._last_preview_at
         assert asr.starts == 1
         assert asr.pushes == 1
+        await session.close()
+
+    asyncio.run(run())
+
+
+def test_preview_punctuation_does_not_seal_an_incomplete_phrase():
+    class RevisableASR(FakeASR):
+        def push(self, pcm16):
+            self.pushes += 1
+            text = "The language model has a context." if self.pushes <= 15 else "The language model has a context window."
+            return [ASREvent(text, 0, self.pushes * 160, final=False)]
+
+        def finish(self):
+            return [ASREvent("The language model has a context window.", 0, self.pushes * 160, final=True)]
+
+    async def run():
+        events = []
+
+        async def emit(event):
+            events.append(event)
+
+        asr = RevisableASR()
+        session = LiveSession(asr, FakeTranslator(), emit)
+        assert await session.start("punctuation", 1, "en", "zh")
+        for sequence in range(20):
+            assert session.push_audio(AudioFrame("punctuation", 1, sequence, sequence * 2560,
+                                                 16_000, 1, b"\x00\x02" * 2560))
+        assert await session.stop()
+        finals = [event["segment"] for event in events if event["kind"] == "subtitle"
+                  and event["segment"]["translation_state"] == "final"]
+        assert len(finals) == 1
+        assert finals[0]["source_text"] == "The language model has a context window."
+        assert asr.starts == 1
         await session.close()
 
     asyncio.run(run())
@@ -430,6 +564,30 @@ def test_latest_throttled_preview_is_translated_without_another_asr_event(monkey
             assert not session._deferred_previews
             await session._process_asr([ASREvent("hello there friend", 0, 480, True)])
             assert await session.stop()
+        finally:
+            await session.close()
+
+    asyncio.run(run())
+
+
+def test_fast_native_throttle_applies_only_to_the_qualified_direction():
+    from livesub.translation.base import TranslationRequest
+
+    class NativePreferred(FakeTranslator):
+        def preview_interval_seconds(self, language):
+            return 0.1 if language == "en" else None
+
+    async def run():
+        session = LiveSession(QuietASR(), NativePreferred(), lambda event: None)
+        try:
+            now = session_module.time.monotonic()
+            session._last_preview_at.update({"english": now, "chinese": now})
+            session._schedule_preview(TranslationRequest("s", 1, "english", 1, "en", "zh", "hello"))
+            session._schedule_preview(TranslationRequest("s", 1, "chinese", 1, "zh", "en", "你好"))
+            english = session._deferred_previews["english"][1]
+            chinese = session._deferred_previews["chinese"][1]
+            assert 0.09 < english.when() - asyncio.get_running_loop().time() <= 0.1
+            assert 0.7 < chinese.when() - asyncio.get_running_loop().time() <= 0.75
         finally:
             await session.close()
 

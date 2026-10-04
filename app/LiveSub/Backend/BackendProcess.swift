@@ -5,7 +5,6 @@ import Darwin
 struct BackendPaths {
     let source: URL
     let python: URL
-    let runtime: URL
     let models: URL
 
     static func locate() throws -> BackendPaths {
@@ -14,9 +13,6 @@ struct BackendPaths {
             throw BackendClientError.environmentMissing("~/Library/Application Support/LiveSub")
         }
         let root = support.appendingPathComponent("LiveSub", isDirectory: true)
-        let runtime = root.appendingPathComponent(
-            "runtime/Confucius4-R2T2-26d55a54ce5670cff9947a167d8ed95d569fd4d9", isDirectory: true
-        )
         let models = root.appendingPathComponent("models", isDirectory: true)
 
         if Bundle.main.bundleURL.pathExtension == "app" {
@@ -26,7 +22,6 @@ struct BackendPaths {
             return try checked(
                 source: resources.appendingPathComponent("backend", isDirectory: true),
                 python: root.appendingPathComponent("backend/.venv/bin/python3"),
-                runtime: runtime,
                 models: models
             )
         }
@@ -43,7 +38,6 @@ struct BackendPaths {
                     return try checked(
                         source: backend,
                         python: backend.appendingPathComponent(".venv/bin/python3"),
-                        runtime: runtime,
                         models: models
                     )
                 }
@@ -53,14 +47,13 @@ struct BackendPaths {
         throw BackendClientError.environmentMissing("backend/pyproject.toml")
     }
 
-    private static func checked(source: URL, python: URL, runtime: URL, models: URL) throws -> BackendPaths {
+    private static func checked(source: URL, python: URL, models: URL) throws -> BackendPaths {
         let manager = FileManager.default
         let required = [
             source.appendingPathComponent("livesub/server.py"),
             source.appendingPathComponent("pyproject.toml"),
             python,
-            runtime.appendingPathComponent("r2t2_llama", isDirectory: true),
-            models.appendingPathComponent("r2t2", isDirectory: true),
+            models.appendingPathComponent("Qwen3-ASR-1.7B", isDirectory: true),
             models.appendingPathComponent("Qwen3-4B-Instruct-2507-4bit", isDirectory: true),
         ]
         for url in required where !manager.fileExists(atPath: url.path) {
@@ -69,7 +62,7 @@ struct BackendPaths {
         guard manager.isExecutableFile(atPath: python.path) else {
             throw BackendClientError.environmentMissing(python.path)
         }
-        return BackendPaths(source: source, python: python, runtime: runtime, models: models)
+        return BackendPaths(source: source, python: python, models: models)
     }
 }
 
@@ -98,13 +91,20 @@ final class BackendProcess {
         process.arguments = ["-m", "livesub.server"]
         process.currentDirectoryURL = paths.source
         var environment = ProcessInfo.processInfo.environment
-        environment["PYTHONPATH"] = "\(paths.source.path):\(paths.runtime.path)"
+        environment["PYTHONPATH"] = paths.source.path
         environment["PYTHONNOUSERSITE"] = "1"
         environment["PYTHONUNBUFFERED"] = "1"
         environment["PYTHONDONTWRITEBYTECODE"] = "1"
         environment["LIVESUB_AUTH_TOKEN"] = token
         environment["LIVESUB_PARENT_PID"] = String(ProcessInfo.processInfo.processIdentifier)
         environment["LIVESUB_MODEL_ROOT"] = paths.models.path
+        environment.removeValue(forKey: "LIVESUB_NATIVE_TRANSLATOR")
+        if #available(macOS 26.4, *), let resources = Bundle.main.resourceURL {
+            let helper = resources.appendingPathComponent("LiveSubNativeTranslation")
+            if FileManager.default.isExecutableFile(atPath: helper.path) {
+                environment["LIVESUB_NATIVE_TRANSLATOR"] = helper.path
+            }
+        }
         process.environment = environment
         return try await launch(process: process, token: token)
     }

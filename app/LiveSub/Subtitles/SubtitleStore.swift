@@ -11,6 +11,7 @@ public final class SubtitleStore: ObservableObject {
     @Published public private(set) var activeGeneration: UInt64 = 0
 
     private var index: [String: Int] = [:]
+    private var latestSpeakerPosition: [String: Int] = [:]
     private var paragraphMembers: [[Int]] = []
     private var paragraphForSegment: [Int] = []
     private var sourceSnapshots: [String: [UInt64: String]] = [:]
@@ -25,6 +26,7 @@ public final class SubtitleStore: ObservableObject {
         paragraphForSegment = []
         contentRevision &+= 1
         index = [:]
+        latestSpeakerPosition = [:]
         sourceSnapshots = [:]
         activeSessionID = sessionID
         activeGeneration = 0
@@ -48,6 +50,7 @@ public final class SubtitleStore: ObservableObject {
         guard !incoming.sessionId.isEmpty, !incoming.segmentId.isEmpty,
               incoming.sourceRevision > 0, !incoming.sourceText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               incoming.endMs >= incoming.startMs,
+              (incoming.speakerId == nil || ["A", "B", "C", "D", "E"].contains(incoming.speakerId!)),
               (incoming.sourceLanguage, incoming.targetLanguage) == ("en", "zh") ||
                   (incoming.sourceLanguage, incoming.targetLanguage) == ("zh", "en") else { return false }
 
@@ -61,7 +64,8 @@ public final class SubtitleStore: ObservableObject {
                   incoming.sourceRevision >= existing.sourceRevision,
                   !(existing.sourceFinal && (!incoming.sourceFinal || incoming.sourceText != existing.sourceText)),
                   incoming.sourceLanguage == existing.sourceLanguage,
-                  incoming.targetLanguage == existing.targetLanguage else { return false }
+                  incoming.targetLanguage == existing.targetLanguage,
+                  incoming.speakerId == existing.speakerId else { return false }
             if incoming.sourceRevision == existing.sourceRevision && incoming.sourceText != existing.sourceText {
                 return false
             }
@@ -95,7 +99,8 @@ public final class SubtitleStore: ObservableObject {
         if let position = index[key] {
             let existing = segments[position]
             guard accepted.translatedSourceRevision >= existing.translatedSourceRevision ||
-                    (accepted.translationState == .pending || accepted.translationState == .failed) else { return false }
+                    (accepted.translationState == .pending || accepted.translationState == .failed ||
+                     accepted.translationState == .skipped) else { return false }
             if existing.translationState == .final && accepted.translationState != .final { return false }
             if existing.translationState == .final && accepted.targetText != existing.targetText { return false }
             segments[position] = accepted
@@ -107,6 +112,7 @@ public final class SubtitleStore: ObservableObject {
             let newParagraph = TranscriptParagraph.shouldStartNew(after: previous, incoming: accepted)
             index[key] = position
             segments.append(accepted)
+            if let speakerID = accepted.speakerId { latestSpeakerPosition[speakerID] = position }
             if newParagraph {
                 paragraphMembers.append([position])
                 paragraphs.append(TranscriptParagraph(segments: [accepted]))
@@ -116,7 +122,8 @@ public final class SubtitleStore: ObservableObject {
             }
             paragraphForSegment.append(paragraphMembers.count - 1)
         }
-        sourceSnapshots[key] = snapshots
+        sourceSnapshots[key] = incoming.sourceFinal
+            ? [incoming.sourceRevision: incoming.sourceText] : snapshots
         if activeSessionID == nil { activeSessionID = incoming.sessionId }
         if incoming.generation > activeGeneration { activeGeneration = incoming.generation }
         contentRevision &+= 1
@@ -124,7 +131,14 @@ public final class SubtitleStore: ObservableObject {
     }
 
     public var latestCaption: CaptionPair? {
-        guard let latest = segments.last else { return nil }
+        latestCaption(for: nil)
+    }
+
+    public func latestCaption(for selectedSpeakerIDs: Set<String>?) -> CaptionPair? {
+        guard let latest = segments.last(where: { segment in
+            segment.translationState != .skipped &&
+                (selectedSpeakerIDs == nil || segment.speakerId.map { selectedSpeakerIDs!.contains($0) } == true)
+        }) else { return nil }
         let paired = (latest.translationState == .preview || latest.translationState == .final) &&
             !latest.targetText.isEmpty && !latest.translatedSourceText.isEmpty
         return CaptionPair(
@@ -135,14 +149,26 @@ public final class SubtitleStore: ObservableObject {
         )
     }
 
+    public var speakerSummaries: [SpeakerSummary] {
+        latestSpeakerPosition.keys.sorted().compactMap { id in
+            guard let position = latestSpeakerPosition[id] else { return nil }
+            let segment = segments[position]
+            return SpeakerSummary(id: id, recentText: segment.sourceText, isSpeaking: !segment.sourceFinal)
+        }
+    }
+
     public var exportMarkdown: String {
         "# LiveSub session\n\n" + paragraphs.map {
-            "**\($0.sourceLanguage.uppercased())**\n\n\($0.sourceText)\n\n**\($0.targetLanguage.uppercased())**\n\n\($0.targetText)"
+            let speaker = $0.speakerID.map { "**说话人 \($0)**\n\n" } ?? ""
+            return "\(speaker)**\($0.sourceLanguage.uppercased())**\n\n\($0.sourceText)\n\n**\($0.targetLanguage.uppercased())**\n\n\($0.targetText)"
         }.joined(separator: "\n\n---\n\n") + (paragraphs.isEmpty ? "" : "\n")
     }
 
     public var exportText: String {
-        paragraphs.map { "\($0.sourceText)\n\($0.targetText)" }
+        paragraphs.map {
+            let speaker = $0.speakerID.map { "说话人 \($0)\n" } ?? ""
+            return "\(speaker)\($0.sourceText)\n\($0.targetText)"
+        }
             .joined(separator: "\n\n") + (paragraphs.isEmpty ? "" : "\n")
     }
 }

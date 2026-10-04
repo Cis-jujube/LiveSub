@@ -14,14 +14,20 @@ public final class OverlayWindowController: NSObject {
     private var resizeStartFrame: CGRect?
     private var wasVisibleBeforeAdjustment = false
 
+    /// Called when the user presses the in-overlay "完成" control; the owner decides how to finish.
+    public var onFinishAdjustmentRequest: (() -> Void)?
     public private(set) var isVisible = false
     public var isAdjusting: Bool { presentation.isAdjusting }
+    public var fontSize: CGFloat { presentation.fontSize }
+    public var showsBackdrop: Bool { presentation.showsBackdrop }
     var caption: OverlayCaption? { presentation.caption }
 
     public override init() {
         if let data = UserDefaults.standard.data(forKey: placementKey) {
             savedPlacement = try? JSONDecoder().decode(OverlayPlacement.self, from: data)
         }
+        presentation.fontSize = OverlayTypography.load()
+        presentation.showsBackdrop = UserDefaults.standard.bool(forKey: OverlayTypography.backdropPreferenceKey)
         super.init()
         NotificationCenter.default.addObserver(
             self,
@@ -66,13 +72,28 @@ public final class OverlayWindowController: NSObject {
         presentation.displayMode = mode
         dragStartFrame = nil
         resizeStartFrame = nil
-        if let panel {
-            // Keep the user's width and bottom anchor while changing the number of text rows.
-            var frame = panel.frame
-            frame.size.height = mode.overlayHeight
-            panel.setFrame(clamped(frame), display: true)
-        }
+        updatePanelHeight()
         if isVisible { restartFade() }
+    }
+
+    public func setFontSize(_ size: CGFloat) {
+        let next = OverlayTypography.bounded(size)
+        guard presentation.fontSize != next else { return }
+        presentation.fontSize = next
+        UserDefaults.standard.set(Double(next), forKey: OverlayTypography.preferenceKey)
+        updatePanelHeight()
+    }
+
+    public func setBackdrop(_ visible: Bool) {
+        guard presentation.showsBackdrop != visible else { return }
+        presentation.showsBackdrop = visible
+        UserDefaults.standard.set(visible, forKey: OverlayTypography.backdropPreferenceKey)
+    }
+
+    public func resetFontSize() {
+        UserDefaults.standard.removeObject(forKey: OverlayTypography.preferenceKey)
+        presentation.fontSize = OverlayTypography.defaultSize
+        updatePanelHeight()
     }
 
     public func clearCaption() {
@@ -137,7 +158,8 @@ public final class OverlayWindowController: NSObject {
             onMove: { [weak self] in self?.move(by: $0) },
             onMoveEnd: { [weak self] in self?.endMove() },
             onResize: { [weak self] in self?.resize(by: $0) },
-            onResizeEnd: { [weak self] in self?.endResize() }
+            onResizeEnd: { [weak self] in self?.endResize() },
+            onDone: { [weak self] in self?.onFinishAdjustmentRequest?() }
         ))
         hostingView.wantsLayer = true
         hostingView.layer?.backgroundColor = NSColor.clear.cgColor
@@ -158,6 +180,15 @@ public final class OverlayWindowController: NSObject {
                 self.presentation.textOpacity = 0
             }
         }
+    }
+
+    private func updatePanelHeight() {
+        guard let panel else { return }
+        // Preserve the lower edge while the text scale or number of rows changes.
+        var frame = panel.frame
+        frame.size.height = OverlayTypography.panelHeight(for: presentation.displayMode, fontSize: presentation.fontSize)
+        panel.setFrame(clamped(frame), display: true)
+        if savedPlacement != nil { saveCurrentPlacement() }
     }
 
     private func move(by translation: CGSize) {
@@ -220,7 +251,7 @@ public final class OverlayWindowController: NSObject {
             saved: savedPlacement,
             screens: availableDisplays(),
             preferredDisplayID: mainID,
-            height: presentation.displayMode.overlayHeight
+            height: OverlayTypography.panelHeight(for: presentation.displayMode, fontSize: presentation.fontSize)
         )
     }
 

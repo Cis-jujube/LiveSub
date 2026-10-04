@@ -1,0 +1,67 @@
+{
+  "date": "2026-10-02",
+  "scope": "Offline English synthetic WAV ASR prefix comparison on local Qwen MPS. Excludes native microphone/system audio, diarization, translation, IPC, and UI.",
+  "question": "Can a final decode reuse a previous preview when only 640 ms of exact digital silence was appended?",
+  "model_repo": "Qwen/Qwen3-ASR-1.7B",
+  "model_revision": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+  "qwen_asr_version": "0.0.6",
+  "zero_suffix_ms": 640,
+  "pair_count": 4,
+  "identical_text_pairs": 3,
+  "decision": "Rejected final reuse: one incomplete English finance prefix changed last-word output after zero padding. Final recognition continues to decode every accepted PCM sample unless exact same samples were already previewed.",
+  "timing_limit": "One prefix/padded pair per fixture length, prefix always first. Not a speed benchmark or general ASR quality estimate.",
+  "rows": [
+    {
+      "fixture": "en-tech",
+      "fixture_sha256": "6a42583f552a95e5a946a841e5220ecb54555c76980680c4f4580ee03c5db8bf",
+      "prefix_samples": 51200,
+      "zero_suffix_samples": 10240,
+      "prefix_text": "An AI agent can use tools. The language model.",
+      "with_zero_suffix_text": "An AI agent can use tools. The language model.",
+      "identical": true,
+      "compute_ms": [
+        658.79,
+        304.93
+      ]
+    },
+    {
+      "fixture": "en-tech",
+      "fixture_sha256": "6a42583f552a95e5a946a841e5220ecb54555c76980680c4f4580ee03c5db8bf",
+      "prefix_samples": 160161,
+      "zero_suffix_samples": 10240,
+      "prefix_text": "An AI agent can use tools. The language model has a context window. Each input token has a cost. The AI agent must not delete the files.",
+      "with_zero_suffix_text": "An AI agent can use tools. The language model has a context window. Each input token has a cost. The AI agent must not delete the files.",
+      "identical": true,
+      "compute_ms": [
+        798.68,
+        815.0
+      ]
+    },
+    {
+      "fixture": "en-finance",
+      "fixture_sha256": "2b8ffe4f9c3a2939e6deb80ef4be11ef0c49045df0996a16759190a4cac0868d",
+      "prefix_samples": 51200,
+      "zero_suffix_samples": 10240,
+      "prefix_text": "The central bank raised interest rates by twenty-five basis points.",
+      "with_zero_suffix_text": "The central bank raised interest rates by 25 basis.",
+      "identical": false,
+      "compute_ms": [
+        314.25,
+        316.73
+      ]
+    },
+    {
+      "fixture": "en-finance",
+      "fixture_sha256": "2b8ffe4f9c3a2939e6deb80ef4be11ef0c49045df0996a16759190a4cac0868d",
+      "prefix_samples": 162316,
+      "zero_suffix_samples": 10240,
+      "prefix_text": "The central bank raised interest rates by 25 basis points. A higher Sharpe ratio does not guarantee higher returns. The token is not a security token.",
+      "with_zero_suffix_text": "The central bank raised interest rates by 25 basis points. A higher Sharpe ratio does not guarantee higher returns. The token is not a security token.",
+      "identical": true,
+      "compute_ms": [
+        791.7,
+        799.59
+      ]
+    }
+  ]
+}

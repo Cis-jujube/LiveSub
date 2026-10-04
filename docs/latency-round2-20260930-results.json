@@ -1,0 +1,1587 @@
+{
+  "date": "2026-09-30",
+  "scope": "Second optimization round. Paired translation-only benchmark and paced WAV IPC. Native system-audio/UI timing not measured.",
+  "generation": {
+    "scope": "Serial same-prompt generation A/B on one MLX worker; excludes ASR, audio capture, scheduling, IPC, and UI. Alternating pair order, warm-up excluded.",
+    "model_repo": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+    "model_revision": "50d427756c6b1b2fe0c0a10f67fbda1fc8e82c1b",
+    "mlx_lm_version": "0.29.1",
+    "fixture_sha256": "82d4b5cf61d8f8721a6b6f43ed5d1775829101660bfbc48b97529fe1a6415db0",
+    "rounds": 3,
+    "pairs": 108,
+    "identical_outputs": 99,
+    "uncached_median_ms": 284.38,
+    "cached_median_ms": 250.62,
+    "uncached_total_ms": 31292.08,
+    "cached_total_ms": 27155.97,
+    "cases": [
+      {
+        "round": 1,
+        "case": "en-finance-1",
+        "direction": "en",
+        "phase": "partial",
+        "uncached_ms": 218.52,
+        "cached_ms": 213.71,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "en-finance-1",
+        "direction": "en",
+        "phase": "full",
+        "cached_ms": 343.71,
+        "uncached_ms": 298.01,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "en-finance-1",
+        "direction": "en",
+        "phase": "context",
+        "uncached_ms": 325.03,
+        "cached_ms": 273.19,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "en-finance-2",
+        "direction": "en",
+        "phase": "partial",
+        "cached_ms": 147.39,
+        "uncached_ms": 195.71,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "en-finance-2",
+        "direction": "en",
+        "phase": "full",
+        "uncached_ms": 259.44,
+        "cached_ms": 200.05,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "en-finance-2",
+        "direction": "en",
+        "phase": "context",
+        "cached_ms": 270.35,
+        "uncached_ms": 281.42,
+        "identical_output": false,
+        "outputs": {
+          "cached": "夏普比率下降了，尽管回报率上升了。",
+          "uncached": "夏普比率下降了，尽管回报上升了。"
+        }
+      },
+      {
+        "round": 1,
+        "case": "en-security",
+        "direction": "en",
+        "phase": "partial",
+        "uncached_ms": 236.66,
+        "cached_ms": 183.94,
+        "identical_output": false,
+        "outputs": {
+          "uncached": "访问令牌已过期；不要",
+          "cached": "访问令牌过期；不要"
+        }
+      },
+      {
+        "round": 1,
+        "case": "en-security",
+        "direction": "en",
+        "phase": "full",
+        "cached_ms": 257.72,
+        "uncached_ms": 298.13,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "en-security",
+        "direction": "en",
+        "phase": "context",
+        "uncached_ms": 292.51,
+        "cached_ms": 276.26,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "en-negation",
+        "direction": "en",
+        "phase": "partial",
+        "cached_ms": 226.01,
+        "uncached_ms": 282.33,
+        "identical_output": false,
+        "outputs": {
+          "cached": "顾客自备了酒，我们既没有",
+          "uncached": "顾客自备了酒，我们既不"
+        }
+      },
+      {
+        "round": 1,
+        "case": "en-negation",
+        "direction": "en",
+        "phase": "full",
+        "uncached_ms": 364.77,
+        "cached_ms": 320.16,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "en-negation",
+        "direction": "en",
+        "phase": "context",
+        "cached_ms": 339.86,
+        "uncached_ms": 385.72,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "en-statistics",
+        "direction": "en",
+        "phase": "partial",
+        "uncached_ms": 198.62,
+        "cached_ms": 144.67,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "en-statistics",
+        "direction": "en",
+        "phase": "full",
+        "cached_ms": 250.23,
+        "uncached_ms": 295.32,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "en-statistics",
+        "direction": "en",
+        "phase": "context",
+        "uncached_ms": 295.37,
+        "cached_ms": 269.45,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "en-time",
+        "direction": "en",
+        "phase": "partial",
+        "cached_ms": 133.85,
+        "uncached_ms": 191.24,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "en-time",
+        "direction": "en",
+        "phase": "full",
+        "uncached_ms": 261.68,
+        "cached_ms": 174.49,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "en-time",
+        "direction": "en",
+        "phase": "context",
+        "cached_ms": 210.21,
+        "uncached_ms": 231.2,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "zh-negation",
+        "direction": "zh",
+        "phase": "partial",
+        "uncached_ms": 249.71,
+        "cached_ms": 254.02,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "zh-negation",
+        "direction": "zh",
+        "phase": "full",
+        "cached_ms": 352.75,
+        "uncached_ms": 383.88,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "zh-negation",
+        "direction": "zh",
+        "phase": "context",
+        "uncached_ms": 361.04,
+        "cached_ms": 340.9,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "zh-ai-data",
+        "direction": "zh",
+        "phase": "partial",
+        "cached_ms": 189.44,
+        "uncached_ms": 230.78,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "zh-ai-data",
+        "direction": "zh",
+        "phase": "full",
+        "uncached_ms": 341.57,
+        "cached_ms": 283.94,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "zh-ai-data",
+        "direction": "zh",
+        "phase": "context",
+        "cached_ms": 315.43,
+        "uncached_ms": 339.28,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "zh-numbers",
+        "direction": "zh",
+        "phase": "partial",
+        "uncached_ms": 229.48,
+        "cached_ms": 184.48,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "zh-numbers",
+        "direction": "zh",
+        "phase": "full",
+        "cached_ms": 244.84,
+        "uncached_ms": 300.01,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "zh-numbers",
+        "direction": "zh",
+        "phase": "context",
+        "uncached_ms": 291.95,
+        "cached_ms": 268.21,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "zh-quant",
+        "direction": "zh",
+        "phase": "partial",
+        "cached_ms": 218.8,
+        "uncached_ms": 217.83,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "zh-quant",
+        "direction": "zh",
+        "phase": "full",
+        "uncached_ms": 284.74,
+        "cached_ms": 230.62,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "zh-quant",
+        "direction": "zh",
+        "phase": "context",
+        "cached_ms": 253.51,
+        "uncached_ms": 271.15,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "zh-finance",
+        "direction": "zh",
+        "phase": "partial",
+        "uncached_ms": 261.34,
+        "cached_ms": 215.46,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "zh-finance",
+        "direction": "zh",
+        "phase": "full",
+        "cached_ms": 329.59,
+        "uncached_ms": 382.48,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "zh-finance",
+        "direction": "zh",
+        "phase": "context",
+        "uncached_ms": 400.66,
+        "cached_ms": 383.17,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "zh-token",
+        "direction": "zh",
+        "phase": "partial",
+        "cached_ms": 162.92,
+        "uncached_ms": 212.74,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "zh-token",
+        "direction": "zh",
+        "phase": "full",
+        "uncached_ms": 263.05,
+        "cached_ms": 216.56,
+        "identical_output": true
+      },
+      {
+        "round": 1,
+        "case": "zh-token",
+        "direction": "zh",
+        "phase": "context",
+        "cached_ms": 256.48,
+        "uncached_ms": 280.77,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "en-finance-1",
+        "direction": "en",
+        "phase": "partial",
+        "uncached_ms": 209.07,
+        "cached_ms": 204.41,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "en-finance-1",
+        "direction": "en",
+        "phase": "full",
+        "cached_ms": 209.38,
+        "uncached_ms": 262.76,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "en-finance-1",
+        "direction": "en",
+        "phase": "context",
+        "uncached_ms": 256.71,
+        "cached_ms": 234.46,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "en-finance-2",
+        "direction": "en",
+        "phase": "partial",
+        "cached_ms": 132.95,
+        "uncached_ms": 183.36,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "en-finance-2",
+        "direction": "en",
+        "phase": "full",
+        "uncached_ms": 243.07,
+        "cached_ms": 200.14,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "en-finance-2",
+        "direction": "en",
+        "phase": "context",
+        "cached_ms": 265.72,
+        "uncached_ms": 277.8,
+        "identical_output": false,
+        "outputs": {
+          "cached": "夏普比率下降了，尽管回报率上升了。",
+          "uncached": "夏普比率下降了，尽管回报上升了。"
+        }
+      },
+      {
+        "round": 2,
+        "case": "en-security",
+        "direction": "en",
+        "phase": "partial",
+        "uncached_ms": 228.48,
+        "cached_ms": 173.23,
+        "identical_output": false,
+        "outputs": {
+          "uncached": "访问令牌已过期；不要",
+          "cached": "访问令牌过期；不要"
+        }
+      },
+      {
+        "round": 2,
+        "case": "en-security",
+        "direction": "en",
+        "phase": "full",
+        "cached_ms": 239.68,
+        "uncached_ms": 292.73,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "en-security",
+        "direction": "en",
+        "phase": "context",
+        "uncached_ms": 289.62,
+        "cached_ms": 272.26,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "en-negation",
+        "direction": "en",
+        "phase": "partial",
+        "cached_ms": 205.93,
+        "uncached_ms": 254.13,
+        "identical_output": false,
+        "outputs": {
+          "cached": "顾客自备了酒，我们既没有",
+          "uncached": "顾客自备了酒，我们既不"
+        }
+      },
+      {
+        "round": 2,
+        "case": "en-negation",
+        "direction": "en",
+        "phase": "full",
+        "uncached_ms": 384.16,
+        "cached_ms": 352.72,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "en-negation",
+        "direction": "en",
+        "phase": "context",
+        "cached_ms": 380.04,
+        "uncached_ms": 429.38,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "en-statistics",
+        "direction": "en",
+        "phase": "partial",
+        "uncached_ms": 212.69,
+        "cached_ms": 147.64,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "en-statistics",
+        "direction": "en",
+        "phase": "full",
+        "cached_ms": 246.36,
+        "uncached_ms": 292.53,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "en-statistics",
+        "direction": "en",
+        "phase": "context",
+        "uncached_ms": 308.37,
+        "cached_ms": 267.66,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "en-time",
+        "direction": "en",
+        "phase": "partial",
+        "cached_ms": 136.41,
+        "uncached_ms": 180.67,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "en-time",
+        "direction": "en",
+        "phase": "full",
+        "uncached_ms": 218.26,
+        "cached_ms": 175.82,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "en-time",
+        "direction": "en",
+        "phase": "context",
+        "cached_ms": 236.58,
+        "uncached_ms": 247.86,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "zh-negation",
+        "direction": "zh",
+        "phase": "partial",
+        "uncached_ms": 293.34,
+        "cached_ms": 300.1,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "zh-negation",
+        "direction": "zh",
+        "phase": "full",
+        "cached_ms": 379.69,
+        "uncached_ms": 416.34,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "zh-negation",
+        "direction": "zh",
+        "phase": "context",
+        "uncached_ms": 391.4,
+        "cached_ms": 376.92,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "zh-ai-data",
+        "direction": "zh",
+        "phase": "partial",
+        "cached_ms": 196.29,
+        "uncached_ms": 246.05,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "zh-ai-data",
+        "direction": "zh",
+        "phase": "full",
+        "uncached_ms": 388.25,
+        "cached_ms": 303.71,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "zh-ai-data",
+        "direction": "zh",
+        "phase": "context",
+        "cached_ms": 353.81,
+        "uncached_ms": 397.43,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "zh-numbers",
+        "direction": "zh",
+        "phase": "partial",
+        "uncached_ms": 244.57,
+        "cached_ms": 198.88,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "zh-numbers",
+        "direction": "zh",
+        "phase": "full",
+        "cached_ms": 282.59,
+        "uncached_ms": 329.3,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "zh-numbers",
+        "direction": "zh",
+        "phase": "context",
+        "uncached_ms": 316.47,
+        "cached_ms": 326.26,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "zh-quant",
+        "direction": "zh",
+        "phase": "partial",
+        "cached_ms": 239.69,
+        "uncached_ms": 278.89,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "zh-quant",
+        "direction": "zh",
+        "phase": "full",
+        "uncached_ms": 361.45,
+        "cached_ms": 273.06,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "zh-quant",
+        "direction": "zh",
+        "phase": "context",
+        "cached_ms": 324.26,
+        "uncached_ms": 328.37,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "zh-finance",
+        "direction": "zh",
+        "phase": "partial",
+        "uncached_ms": 310.69,
+        "cached_ms": 255.81,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "zh-finance",
+        "direction": "zh",
+        "phase": "full",
+        "cached_ms": 370.17,
+        "uncached_ms": 418.51,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "zh-finance",
+        "direction": "zh",
+        "phase": "context",
+        "uncached_ms": 418.54,
+        "cached_ms": 384.47,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "zh-token",
+        "direction": "zh",
+        "phase": "partial",
+        "cached_ms": 154.12,
+        "uncached_ms": 218.47,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "zh-token",
+        "direction": "zh",
+        "phase": "full",
+        "uncached_ms": 274.94,
+        "cached_ms": 232.69,
+        "identical_output": true
+      },
+      {
+        "round": 2,
+        "case": "zh-token",
+        "direction": "zh",
+        "phase": "context",
+        "cached_ms": 257.47,
+        "uncached_ms": 296.53,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "en-finance-1",
+        "direction": "en",
+        "phase": "partial",
+        "uncached_ms": 207.88,
+        "cached_ms": 217.95,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "en-finance-1",
+        "direction": "en",
+        "phase": "full",
+        "cached_ms": 227.88,
+        "uncached_ms": 290.21,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "en-finance-1",
+        "direction": "en",
+        "phase": "context",
+        "uncached_ms": 271.36,
+        "cached_ms": 253.93,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "en-finance-2",
+        "direction": "en",
+        "phase": "partial",
+        "cached_ms": 137.01,
+        "uncached_ms": 203.28,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "en-finance-2",
+        "direction": "en",
+        "phase": "full",
+        "uncached_ms": 280.28,
+        "cached_ms": 187.91,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "en-finance-2",
+        "direction": "en",
+        "phase": "context",
+        "cached_ms": 267.04,
+        "uncached_ms": 272.15,
+        "identical_output": false,
+        "outputs": {
+          "cached": "夏普比率下降了，尽管回报率上升了。",
+          "uncached": "夏普比率下降了，尽管回报上升了。"
+        }
+      },
+      {
+        "round": 3,
+        "case": "en-security",
+        "direction": "en",
+        "phase": "partial",
+        "uncached_ms": 232.24,
+        "cached_ms": 166.39,
+        "identical_output": false,
+        "outputs": {
+          "uncached": "访问令牌已过期；不要",
+          "cached": "访问令牌过期；不要"
+        }
+      },
+      {
+        "round": 3,
+        "case": "en-security",
+        "direction": "en",
+        "phase": "full",
+        "cached_ms": 258.0,
+        "uncached_ms": 299.73,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "en-security",
+        "direction": "en",
+        "phase": "context",
+        "uncached_ms": 314.0,
+        "cached_ms": 336.58,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "en-negation",
+        "direction": "en",
+        "phase": "partial",
+        "cached_ms": 221.06,
+        "uncached_ms": 277.55,
+        "identical_output": false,
+        "outputs": {
+          "cached": "顾客自备了酒，我们既没有",
+          "uncached": "顾客自备了酒，我们既不"
+        }
+      },
+      {
+        "round": 3,
+        "case": "en-negation",
+        "direction": "en",
+        "phase": "full",
+        "uncached_ms": 384.95,
+        "cached_ms": 309.91,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "en-negation",
+        "direction": "en",
+        "phase": "context",
+        "cached_ms": 350.78,
+        "uncached_ms": 379.31,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "en-statistics",
+        "direction": "en",
+        "phase": "partial",
+        "uncached_ms": 228.97,
+        "cached_ms": 150.87,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "en-statistics",
+        "direction": "en",
+        "phase": "full",
+        "cached_ms": 261.58,
+        "uncached_ms": 303.2,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "en-statistics",
+        "direction": "en",
+        "phase": "context",
+        "uncached_ms": 304.56,
+        "cached_ms": 284.16,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "en-time",
+        "direction": "en",
+        "phase": "partial",
+        "cached_ms": 132.57,
+        "uncached_ms": 173.96,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "en-time",
+        "direction": "en",
+        "phase": "full",
+        "uncached_ms": 225.88,
+        "cached_ms": 166.9,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "en-time",
+        "direction": "en",
+        "phase": "context",
+        "cached_ms": 195.99,
+        "uncached_ms": 230.67,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "zh-negation",
+        "direction": "zh",
+        "phase": "partial",
+        "uncached_ms": 234.45,
+        "cached_ms": 251.01,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "zh-negation",
+        "direction": "zh",
+        "phase": "full",
+        "cached_ms": 341.11,
+        "uncached_ms": 398.15,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "zh-negation",
+        "direction": "zh",
+        "phase": "context",
+        "uncached_ms": 411.7,
+        "cached_ms": 365.75,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "zh-ai-data",
+        "direction": "zh",
+        "phase": "partial",
+        "cached_ms": 187.87,
+        "uncached_ms": 245.86,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "zh-ai-data",
+        "direction": "zh",
+        "phase": "full",
+        "uncached_ms": 357.23,
+        "cached_ms": 298.42,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "zh-ai-data",
+        "direction": "zh",
+        "phase": "context",
+        "cached_ms": 338.97,
+        "uncached_ms": 339.11,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "zh-numbers",
+        "direction": "zh",
+        "phase": "partial",
+        "uncached_ms": 239.52,
+        "cached_ms": 177.74,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "zh-numbers",
+        "direction": "zh",
+        "phase": "full",
+        "cached_ms": 248.92,
+        "uncached_ms": 284.17,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "zh-numbers",
+        "direction": "zh",
+        "phase": "context",
+        "uncached_ms": 294.95,
+        "cached_ms": 256.87,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "zh-quant",
+        "direction": "zh",
+        "phase": "partial",
+        "cached_ms": 183.64,
+        "uncached_ms": 215.7,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "zh-quant",
+        "direction": "zh",
+        "phase": "full",
+        "uncached_ms": 302.63,
+        "cached_ms": 243.76,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "zh-quant",
+        "direction": "zh",
+        "phase": "context",
+        "cached_ms": 280.76,
+        "uncached_ms": 292.29,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "zh-finance",
+        "direction": "zh",
+        "phase": "partial",
+        "uncached_ms": 274.36,
+        "cached_ms": 227.63,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "zh-finance",
+        "direction": "zh",
+        "phase": "full",
+        "cached_ms": 348.0,
+        "uncached_ms": 404.11,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "zh-finance",
+        "direction": "zh",
+        "phase": "context",
+        "uncached_ms": 409.45,
+        "cached_ms": 374.45,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "zh-token",
+        "direction": "zh",
+        "phase": "partial",
+        "cached_ms": 182.81,
+        "uncached_ms": 215.42,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "zh-token",
+        "direction": "zh",
+        "phase": "full",
+        "uncached_ms": 284.58,
+        "cached_ms": 215.94,
+        "identical_output": true
+      },
+      {
+        "round": 3,
+        "case": "zh-token",
+        "direction": "zh",
+        "phase": "context",
+        "cached_ms": 278.06,
+        "uncached_ms": 292.89,
+        "identical_output": true
+      }
+    ]
+  },
+  "ipc": {
+    "before-en": {
+      "audio_sha256": "6a42583f552a95e5a946a841e5220ecb54555c76980680c4f4580ee03c5db8bf",
+      "audio_duration_ms": 10010.06,
+      "source_language": "en",
+      "target_language": "zh",
+      "frame_samples": 2560,
+      "frames_sent": 63,
+      "unauthorized_rejected": true,
+      "failure_codes": [],
+      "asr_model_repo": "Qwen/Qwen3-ASR-1.7B",
+      "asr_model_revision": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+      "translation_model_repo": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+      "translation_model_revision": "50d427756c6b1b2fe0c0a10f67fbda1fc8e82c1b",
+      "model_assets_verified": true,
+      "model_verification_ms": 2450.49,
+      "protocol_version": 1,
+      "unauthorized_rejection_kind": "http_403",
+      "max_send_lateness_ms": 1.25,
+      "backend_exit_code": -15,
+      "extra_backend_stdout_lines": 0,
+      "state_sequence": [
+        "loading",
+        "listening",
+        "stopping",
+        "idle"
+      ],
+      "error_codes": [],
+      "subtitle_events": 22,
+      "unique_segment_ids": 1,
+      "audio_overflow_errors": 0,
+      "translation_overflow_errors": 0,
+      "frame_rejected_errors": 0,
+      "server_queue_depth_exposed": false,
+      "target_latency_scope": "Paced WAV audio-start to backend WebSocket IPC reception in this smoke client; excludes native capture and UI rendering and does not measure end-of-speech. Source-final waits start at first observed matching final source revision, not at the backend's internal ASR completion. Usable targets are nonblank preview/final translations with a nonblank translated source; useful previews also match the current source text and revision.",
+      "audio_start_to_first_usable_target_ms": 1997.26,
+      "audio_start_to_first_current_pair_preview_ms": 1997.26,
+      "useful_preview_events": 10,
+      "useful_previews": 10,
+      "segment_target_timings": [
+        {
+          "segment_index": 1,
+          "first_source_observed_after_audio_start_ms": 1370.31,
+          "first_usable_target_after_audio_start_ms": 1997.26,
+          "first_usable_target_after_source_observed_ms": 626.95
+        }
+      ],
+      "source_final_to_final_target_waits": [
+        {
+          "segment_index": 1,
+          "source_revision": 11,
+          "source_final_observed_to_final_target_ms": 625.67
+        }
+      ],
+      "start_to_listening_ms": 7952.78,
+      "stop_to_idle_ms": 2043.5,
+      "audio_start_to_first_subtitle_ms": 1370.31,
+      "final_translated_segments": 1,
+      "duplicate_final_segment_ids": 0,
+      "final_translations_retained_at_idle": true,
+      "final_translations_received_after_stop": 1,
+      "all_final_pairs_match_source_revision": true,
+      "final_translation_after_segment_end_ms": [
+        2044.67
+      ],
+      "last_final_segment_near_audio_end": true,
+      "expected_tail_substring_found": null,
+      "target_script_present": true,
+      "post_final_state_regressions": 0,
+      "final_pairs": [
+        {
+          "source": "An AI agent can use tools. The language model has a context window. Each input token has a cost. The AI agent must not delete the files.",
+          "translation": "一个AI Agent可以使用工具。语言模型具有上下文窗口。每个输入token都有成本。AI Agent不得删除文件。"
+        }
+      ],
+      "passed": true
+    },
+    "after-en": {
+      "audio_sha256": "6a42583f552a95e5a946a841e5220ecb54555c76980680c4f4580ee03c5db8bf",
+      "audio_duration_ms": 10010.06,
+      "source_language": "en",
+      "target_language": "zh",
+      "frame_samples": 2560,
+      "frames_sent": 63,
+      "unauthorized_rejected": true,
+      "failure_codes": [],
+      "asr_model_repo": "Qwen/Qwen3-ASR-1.7B",
+      "asr_model_revision": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+      "translation_model_repo": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+      "translation_model_revision": "50d427756c6b1b2fe0c0a10f67fbda1fc8e82c1b",
+      "model_assets_verified": true,
+      "model_verification_ms": 2526.16,
+      "protocol_version": 1,
+      "unauthorized_rejection_kind": "http_403",
+      "max_send_lateness_ms": 1.23,
+      "backend_exit_code": -15,
+      "extra_backend_stdout_lines": 0,
+      "state_sequence": [
+        "loading",
+        "listening",
+        "stopping",
+        "idle"
+      ],
+      "error_codes": [],
+      "subtitle_events": 24,
+      "unique_segment_ids": 1,
+      "audio_overflow_errors": 0,
+      "translation_overflow_errors": 0,
+      "frame_rejected_errors": 0,
+      "server_queue_depth_exposed": false,
+      "target_latency_scope": "Paced WAV audio-start to backend WebSocket IPC reception in this smoke client; excludes native capture and UI rendering and does not measure end-of-speech. Source-final waits start at first observed matching final source revision, not at the backend's internal ASR completion. Usable targets are nonblank preview/final translations with a nonblank translated source; useful previews also match the current source text and revision.",
+      "audio_start_to_first_usable_target_ms": 1501.81,
+      "audio_start_to_first_current_pair_preview_ms": 1501.81,
+      "useful_preview_events": 11,
+      "useful_previews": 11,
+      "segment_target_timings": [
+        {
+          "segment_index": 1,
+          "first_source_observed_after_audio_start_ms": 1157.1,
+          "first_usable_target_after_audio_start_ms": 1501.81,
+          "first_usable_target_after_source_observed_ms": 344.7
+        }
+      ],
+      "source_final_to_final_target_waits": [
+        {
+          "segment_index": 1,
+          "source_revision": 12,
+          "source_final_observed_to_final_target_ms": 1.02
+        }
+      ],
+      "start_to_listening_ms": 4727.71,
+      "stop_to_idle_ms": 2122.42,
+      "audio_start_to_first_subtitle_ms": 1157.1,
+      "final_translated_segments": 1,
+      "duplicate_final_segment_ids": 0,
+      "final_translations_retained_at_idle": true,
+      "final_translations_received_after_stop": 1,
+      "all_final_pairs_match_source_revision": true,
+      "final_translation_after_segment_end_ms": [
+        2123.6
+      ],
+      "last_final_segment_near_audio_end": true,
+      "expected_tail_substring_found": null,
+      "target_script_present": true,
+      "post_final_state_regressions": 0,
+      "final_pairs": [
+        {
+          "source": "An AI agent can use tools. The language model has a context window. Each input token has a cost. The AI agent must not delete the files.",
+          "translation": "一个AI Agent可以使用工具。语言模型具有上下文窗口。每个输入token都有成本。AI Agent不得删除文件。"
+        }
+      ],
+      "passed": true
+    },
+    "before-zh": {
+      "audio_sha256": "6a1c0ebb3acb7302714874a212259be8d8f5f2747954a88b7fb8ced459b65586",
+      "audio_duration_ms": 10366.38,
+      "source_language": "zh",
+      "target_language": "en",
+      "frame_samples": 2560,
+      "frames_sent": 65,
+      "unauthorized_rejected": true,
+      "failure_codes": [],
+      "asr_model_repo": "Qwen/Qwen3-ASR-1.7B",
+      "asr_model_revision": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+      "translation_model_repo": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+      "translation_model_revision": "50d427756c6b1b2fe0c0a10f67fbda1fc8e82c1b",
+      "model_assets_verified": true,
+      "model_verification_ms": 2543.4,
+      "protocol_version": 1,
+      "unauthorized_rejection_kind": "http_403",
+      "max_send_lateness_ms": 1.25,
+      "backend_exit_code": -15,
+      "extra_backend_stdout_lines": 0,
+      "state_sequence": [
+        "loading",
+        "listening",
+        "stopping",
+        "idle"
+      ],
+      "error_codes": [],
+      "subtitle_events": 26,
+      "unique_segment_ids": 1,
+      "audio_overflow_errors": 0,
+      "translation_overflow_errors": 0,
+      "frame_rejected_errors": 0,
+      "server_queue_depth_exposed": false,
+      "target_latency_scope": "Paced WAV audio-start to backend WebSocket IPC reception in this smoke client; excludes native capture and UI rendering and does not measure end-of-speech. Source-final waits start at first observed matching final source revision, not at the backend's internal ASR completion. Usable targets are nonblank preview/final translations with a nonblank translated source; useful previews also match the current source text and revision.",
+      "audio_start_to_first_usable_target_ms": 2162.87,
+      "audio_start_to_first_current_pair_preview_ms": 2570.58,
+      "useful_preview_events": 11,
+      "useful_previews": 11,
+      "segment_target_timings": [
+        {
+          "segment_index": 1,
+          "first_source_observed_after_audio_start_ms": 1223.7,
+          "first_usable_target_after_audio_start_ms": 2162.87,
+          "first_usable_target_after_source_observed_ms": 939.18
+        }
+      ],
+      "source_final_to_final_target_waits": [
+        {
+          "segment_index": 1,
+          "source_revision": 13,
+          "source_final_observed_to_final_target_ms": 0.96
+        }
+      ],
+      "start_to_listening_ms": 5726.22,
+      "stop_to_idle_ms": 1598.34,
+      "audio_start_to_first_subtitle_ms": 1223.7,
+      "final_translated_segments": 1,
+      "duplicate_final_segment_ids": 0,
+      "final_translations_retained_at_idle": true,
+      "final_translations_received_after_stop": 1,
+      "all_final_pairs_match_source_revision": true,
+      "final_translation_after_segment_end_ms": [
+        1600.09
+      ],
+      "last_final_segment_near_audio_end": true,
+      "expected_tail_substring_found": null,
+      "target_script_present": true,
+      "post_final_state_regressions": 0,
+      "final_pairs": [
+        {
+          "source": "这个人工智能智能体使用检索、增强、生成、分析、置信区间和样本量，请保留英文的token和API。",
+          "translation": "This AI agent uses retrieval-augmented generation, analyzes, confidence interval, and sample size, please retain the English token and API."
+        }
+      ],
+      "passed": true
+    },
+    "after-zh": {
+      "audio_sha256": "6a1c0ebb3acb7302714874a212259be8d8f5f2747954a88b7fb8ced459b65586",
+      "audio_duration_ms": 10366.38,
+      "source_language": "zh",
+      "target_language": "en",
+      "frame_samples": 2560,
+      "frames_sent": 65,
+      "unauthorized_rejected": true,
+      "failure_codes": [],
+      "asr_model_repo": "Qwen/Qwen3-ASR-1.7B",
+      "asr_model_revision": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+      "translation_model_repo": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+      "translation_model_revision": "50d427756c6b1b2fe0c0a10f67fbda1fc8e82c1b",
+      "model_assets_verified": true,
+      "model_verification_ms": 2494.83,
+      "protocol_version": 1,
+      "unauthorized_rejection_kind": "http_403",
+      "max_send_lateness_ms": 1.3,
+      "backend_exit_code": -15,
+      "extra_backend_stdout_lines": 0,
+      "state_sequence": [
+        "loading",
+        "listening",
+        "stopping",
+        "idle"
+      ],
+      "error_codes": [],
+      "subtitle_events": 26,
+      "unique_segment_ids": 1,
+      "audio_overflow_errors": 0,
+      "translation_overflow_errors": 0,
+      "frame_rejected_errors": 0,
+      "server_queue_depth_exposed": false,
+      "target_latency_scope": "Paced WAV audio-start to backend WebSocket IPC reception in this smoke client; excludes native capture and UI rendering and does not measure end-of-speech. Source-final waits start at first observed matching final source revision, not at the backend's internal ASR completion. Usable targets are nonblank preview/final translations with a nonblank translated source; useful previews also match the current source text and revision.",
+      "audio_start_to_first_usable_target_ms": 1332.81,
+      "audio_start_to_first_current_pair_preview_ms": 1332.81,
+      "useful_preview_events": 12,
+      "useful_previews": 12,
+      "segment_target_timings": [
+        {
+          "segment_index": 1,
+          "first_source_observed_after_audio_start_ms": 1118.85,
+          "first_usable_target_after_audio_start_ms": 1332.81,
+          "first_usable_target_after_source_observed_ms": 213.96
+        }
+      ],
+      "source_final_to_final_target_waits": [
+        {
+          "segment_index": 1,
+          "source_revision": 13,
+          "source_final_observed_to_final_target_ms": 441.39
+        }
+      ],
+      "start_to_listening_ms": 4245.04,
+      "stop_to_idle_ms": 1783.87,
+      "audio_start_to_first_subtitle_ms": 1118.85,
+      "final_translated_segments": 1,
+      "duplicate_final_segment_ids": 0,
+      "final_translations_retained_at_idle": true,
+      "final_translations_received_after_stop": 1,
+      "all_final_pairs_match_source_revision": true,
+      "final_translation_after_segment_end_ms": [
+        1785.6
+      ],
+      "last_final_segment_near_audio_end": true,
+      "expected_tail_substring_found": null,
+      "target_script_present": true,
+      "post_final_state_regressions": 0,
+      "final_pairs": [
+        {
+          "source": "这个人工智能智能体使用检索、增强、生成、分析、置信区间和样本量，请保留英文的token和API。",
+          "translation": "This AI agent uses retrieval-augmented generation, analyzes, confidence interval, and sample size, please retain the English token and API."
+        }
+      ],
+      "passed": true
+    },
+    "before-en-sustained": {
+      "audio_sha256": "72f2ecafb97a50980833c3460cf396731ea6fdba1a2ef2504f9908ded7b40753",
+      "audio_duration_ms": 42869.62,
+      "source_language": "en",
+      "target_language": "zh",
+      "frame_samples": 2560,
+      "frames_sent": 268,
+      "unauthorized_rejected": true,
+      "failure_codes": [],
+      "asr_model_repo": "Qwen/Qwen3-ASR-1.7B",
+      "asr_model_revision": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+      "translation_model_repo": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+      "translation_model_revision": "50d427756c6b1b2fe0c0a10f67fbda1fc8e82c1b",
+      "model_assets_verified": true,
+      "model_verification_ms": 2714.04,
+      "protocol_version": 1,
+      "unauthorized_rejection_kind": "http_403",
+      "max_send_lateness_ms": 1.28,
+      "backend_exit_code": -15,
+      "extra_backend_stdout_lines": 0,
+      "state_sequence": [
+        "loading",
+        "listening",
+        "stopping",
+        "idle"
+      ],
+      "error_codes": [],
+      "subtitle_events": 82,
+      "unique_segment_ids": 4,
+      "audio_overflow_errors": 0,
+      "translation_overflow_errors": 0,
+      "frame_rejected_errors": 0,
+      "server_queue_depth_exposed": false,
+      "target_latency_scope": "Paced WAV audio-start to backend WebSocket IPC reception in this smoke client; excludes native capture and UI rendering and does not measure end-of-speech. Source-final waits start at first observed matching final source revision, not at the backend's internal ASR completion. Usable targets are nonblank preview/final translations with a nonblank translated source; useful previews also match the current source text and revision.",
+      "audio_start_to_first_usable_target_ms": 1889.53,
+      "audio_start_to_first_current_pair_preview_ms": 1889.53,
+      "useful_preview_events": 37,
+      "useful_previews": 37,
+      "segment_target_timings": [
+        {
+          "segment_index": 1,
+          "first_source_observed_after_audio_start_ms": 1237.09,
+          "first_usable_target_after_audio_start_ms": 1889.53,
+          "first_usable_target_after_source_observed_ms": 652.44
+        },
+        {
+          "segment_index": 2,
+          "first_source_observed_after_audio_start_ms": 13003.93,
+          "first_usable_target_after_audio_start_ms": 13298.59,
+          "first_usable_target_after_source_observed_ms": 294.65
+        },
+        {
+          "segment_index": 3,
+          "first_source_observed_after_audio_start_ms": 23926.76,
+          "first_usable_target_after_audio_start_ms": 24296.66,
+          "first_usable_target_after_source_observed_ms": 369.91
+        },
+        {
+          "segment_index": 4,
+          "first_source_observed_after_audio_start_ms": 34175.22,
+          "first_usable_target_after_audio_start_ms": 34938.46,
+          "first_usable_target_after_source_observed_ms": 763.24
+        }
+      ],
+      "source_final_to_final_target_waits": [
+        {
+          "segment_index": 1,
+          "source_revision": 11,
+          "source_final_observed_to_final_target_ms": 1.82
+        },
+        {
+          "segment_index": 2,
+          "source_revision": 10,
+          "source_final_observed_to_final_target_ms": 1.57
+        },
+        {
+          "segment_index": 3,
+          "source_revision": 10,
+          "source_final_observed_to_final_target_ms": 883.15
+        },
+        {
+          "segment_index": 4,
+          "source_revision": 10,
+          "source_final_observed_to_final_target_ms": 1.37
+        }
+      ],
+      "start_to_listening_ms": 10784.82,
+      "stop_to_idle_ms": 1873.52,
+      "audio_start_to_first_subtitle_ms": 1237.09,
+      "final_translated_segments": 4,
+      "duplicate_final_segment_ids": 0,
+      "final_translations_retained_at_idle": true,
+      "final_translations_received_after_stop": 1,
+      "all_final_pairs_match_source_revision": true,
+      "final_translation_after_segment_end_ms": [
+        2353.19,
+        2568.23,
+        2729.03,
+        2184.37
+      ],
+      "last_final_segment_near_audio_end": true,
+      "expected_tail_substring_found": null,
+      "target_script_present": true,
+      "post_final_state_regressions": 0,
+      "final_pairs": [
+        {
+          "source": "An AI agent can use tools. The language model has a context window. Each input token has a cost. The AI agent must not delete the files.",
+          "translation": "一个AI Agent可以使用工具。语言模型具有上下文窗口。每个输入token都有成本。AI Agent不得删除文件。"
+        },
+        {
+          "source": "The central bank raised interest rates by 25 basis points. A higher Sharpe ratio does not guarantee higher returns. The token is not a security token.",
+          "translation": "中央银行将利率提高了25个基点。较高的夏普比率并不能保证更高的回报。该代币不是证券代币。"
+        },
+        {
+          "source": "An AI agent can use tools. The language model has a context window. Each input token has a cost. The AI agent must not delete the files.",
+          "translation": "一个AI Agent可以使用工具。语言模型有一个上下文窗口。每个输入token都有成本。AI Agent必须不得删除文件。"
+        },
+        {
+          "source": "The central bank raised interest rates by 25 basis points. A higher Sharpe ratio does not guarantee higher returns. The token is not a security token.",
+          "translation": "中央银行将利率提高了25个基点。较高的夏普比率并不能保证更高的回报。该代币不是证券代币。"
+        }
+      ],
+      "passed": true
+    },
+    "after-en-sustained": {
+      "audio_sha256": "72f2ecafb97a50980833c3460cf396731ea6fdba1a2ef2504f9908ded7b40753",
+      "audio_duration_ms": 42869.62,
+      "source_language": "en",
+      "target_language": "zh",
+      "frame_samples": 2560,
+      "frames_sent": 268,
+      "unauthorized_rejected": true,
+      "failure_codes": [],
+      "asr_model_repo": "Qwen/Qwen3-ASR-1.7B",
+      "asr_model_revision": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+      "translation_model_repo": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+      "translation_model_revision": "50d427756c6b1b2fe0c0a10f67fbda1fc8e82c1b",
+      "model_assets_verified": true,
+      "model_verification_ms": 2428.04,
+      "protocol_version": 1,
+      "unauthorized_rejection_kind": "http_403",
+      "max_send_lateness_ms": 1.37,
+      "backend_exit_code": -15,
+      "extra_backend_stdout_lines": 0,
+      "state_sequence": [
+        "loading",
+        "listening",
+        "stopping",
+        "idle"
+      ],
+      "error_codes": [],
+      "subtitle_events": 88,
+      "unique_segment_ids": 4,
+      "audio_overflow_errors": 0,
+      "translation_overflow_errors": 0,
+      "frame_rejected_errors": 0,
+      "server_queue_depth_exposed": false,
+      "target_latency_scope": "Paced WAV audio-start to backend WebSocket IPC reception in this smoke client; excludes native capture and UI rendering and does not measure end-of-speech. Source-final waits start at first observed matching final source revision, not at the backend's internal ASR completion. Usable targets are nonblank preview/final translations with a nonblank translated source; useful previews also match the current source text and revision.",
+      "audio_start_to_first_usable_target_ms": 1764.87,
+      "audio_start_to_first_current_pair_preview_ms": 1764.87,
+      "useful_preview_events": 40,
+      "useful_previews": 40,
+      "segment_target_timings": [
+        {
+          "segment_index": 1,
+          "first_source_observed_after_audio_start_ms": 1234.2,
+          "first_usable_target_after_audio_start_ms": 1764.87,
+          "first_usable_target_after_source_observed_ms": 530.67
+        },
+        {
+          "segment_index": 2,
+          "first_source_observed_after_audio_start_ms": 12441.93,
+          "first_usable_target_after_audio_start_ms": 12656.58,
+          "first_usable_target_after_source_observed_ms": 214.65
+        },
+        {
+          "segment_index": 3,
+          "first_source_observed_after_audio_start_ms": 22484.51,
+          "first_usable_target_after_audio_start_ms": 22725.95,
+          "first_usable_target_after_source_observed_ms": 241.44
+        },
+        {
+          "segment_index": 4,
+          "first_source_observed_after_audio_start_ms": 33871.68,
+          "first_usable_target_after_audio_start_ms": 34102.34,
+          "first_usable_target_after_source_observed_ms": 230.66
+        }
+      ],
+      "source_final_to_final_target_waits": [
+        {
+          "segment_index": 1,
+          "source_revision": 12,
+          "source_final_observed_to_final_target_ms": 1.51
+        },
+        {
+          "segment_index": 2,
+          "source_revision": 10,
+          "source_final_observed_to_final_target_ms": 1.28
+        },
+        {
+          "segment_index": 3,
+          "source_revision": 12,
+          "source_final_observed_to_final_target_ms": 1.61
+        },
+        {
+          "segment_index": 4,
+          "source_revision": 10,
+          "source_final_observed_to_final_target_ms": 1.4
+        }
+      ],
+      "start_to_listening_ms": 4505.67,
+      "stop_to_idle_ms": 934.12,
+      "audio_start_to_first_subtitle_ms": 1234.2,
+      "final_translated_segments": 4,
+      "duplicate_final_segment_ids": 0,
+      "final_translations_retained_at_idle": true,
+      "final_translations_received_after_stop": 1,
+      "all_final_pairs_match_source_revision": true,
+      "final_translation_after_segment_end_ms": [
+        1855.62,
+        1226.45,
+        1850.47,
+        1244.89
+      ],
+      "last_final_segment_near_audio_end": true,
+      "expected_tail_substring_found": null,
+      "target_script_present": true,
+      "post_final_state_regressions": 0,
+      "final_pairs": [
+        {
+          "source": "An AI agent can use tools. The language model has a context window. Each input token has a cost. The AI agent must not delete the files.",
+          "translation": "一个AI Agent可以使用工具。语言模型具有上下文窗口。每个输入token都有成本。AI Agent不得删除文件。"
+        },
+        {
+          "source": "The central bank raised interest rates by 25 basis points. A higher Sharpe ratio does not guarantee higher returns. The token is not a security token.",
+          "translation": "中央银行将利率提高了25个基点。较高的夏普比率并不能保证更高的回报。该代币不是证券代币。"
+        },
+        {
+          "source": "An AI agent can use tools. The language model has a context window. Each input token has a cost. The AI agent must not delete the files.",
+          "translation": "一个AI Agent可以使用工具。语言模型有一个上下文窗口。每个输入token都有成本。AI Agent必须不得删除文件。"
+        },
+        {
+          "source": "The central bank raised interest rates by 25 basis points. A higher Sharpe ratio does not guarantee higher returns. The token is not a security token.",
+          "translation": "中央银行将利率提高了25个基点。较高的夏普比率并不能保证更高的回报。该代币不是证券代币。"
+        }
+      ],
+      "passed": true
+    }
+  },
+  "source_sha256": {
+    "backend/livesub/translation/prompt_cache.py": "387248cf338b558c3070975f53ed49e9213a481f56e0ee13a8671c9f18d203e9",
+    "backend/livesub/translation/mlx_engine.py": "3886c3eb8e53835d697c513718b6664c726ae60be50dc26fff29f085775efd96",
+    "script/benchmark_translation_cache.py": "c0e4ac058bd295860c158526e6db8e15d0bd4e7043b3b2e05a1c09d949e08583"
+  }
+}

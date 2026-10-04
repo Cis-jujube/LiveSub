@@ -1,0 +1,37 @@
+[
+  {
+    "id": "zh-qwen-public",
+    "kind": "public-recording",
+    "language": "Chinese",
+    "audio": ".build/asr-benchmark/zh-public.wav",
+    "reference": "甚至出现交易几乎停滞的情况。"
+  },
+  {
+    "id": "en-tech-tts",
+    "kind": "synthetic",
+    "language": "English",
+    "audio": ".build/asr-benchmark/en-tech.wav",
+    "reference": "An AI agent can use tools. The language model has a context window. Each input token has a cost. The AI agent must not delete the files."
+  },
+  {
+    "id": "zh-tech-tts",
+    "kind": "synthetic",
+    "language": "Chinese",
+    "audio": ".build/asr-benchmark/zh-tech.wav",
+    "reference": "这个人工智能智能体使用检索增强生成，分析置信区间和样本量。请保留英文的 token 和 API。"
+  },
+  {
+    "id": "en-finance-tts",
+    "kind": "synthetic",
+    "language": "English",
+    "audio": ".build/asr-benchmark/en-finance.wav",
+    "reference": "The central bank raised interest rates by twenty five basis points. A higher Sharpe ratio does not guarantee higher returns. The token is not a security token."
+  },
+  {
+    "id": "zh-finance-tts",
+    "kind": "synthetic",
+    "language": "Chinese",
+    "audio": ".build/asr-benchmark/zh-finance.wav",
+    "reference": "这家公司的市盈率是二十八倍，现金流下降了百分之三。我们用机器学习预测波动率，但不能保证收益。"
+  }
+]

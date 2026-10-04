@@ -83,7 +83,57 @@ struct SubtitleStoreChecks {
         precondition(store.exportText.contains("Sentence 1799"))
         try displayPreferenceChecks(store: store)
         try paragraphAndTerminologyChecks(template: first)
+        speakerSelectionChecks(template: first)
         print("SubtitleStoreChecks: original contracts, 1800 long-session pairs, paragraph and terminology checks passed")
+    }
+
+    @MainActor private static func speakerSelectionChecks(template: SubtitleSegment) {
+        let store = SubtitleStore()
+        var a = template
+        a.segmentId = "speaker-a"
+        a.speakerId = "A"
+        a.sourceText = "Voice A"
+        a.sourceFinal = true
+        a.translationState = .skipped
+        precondition(store.apply(a))
+        precondition(store.paragraphs[0].targetText == "[未选中 · 未翻译]")
+        precondition(store.latestCaption == nil, "skipped speech must not appear in the overlay")
+        var b = a
+        b.segmentId = "speaker-b"
+        b.speakerId = "B"
+        b.sequence = 1
+        b.startMs = 1_200
+        b.endMs = 2_400
+        b.sourceText = "Voice B"
+        b.translationState = .pending
+        precondition(store.apply(b))
+        precondition(store.paragraphs.count == 2, "speaker changes must split paragraphs")
+        precondition(store.latestCaption(for: ["A"]) == nil)
+        precondition(store.latestCaption(for: ["B"])?.sourceText == "Voice B")
+        precondition(store.speakerSummaries.map(\.id) == ["A", "B"])
+        var newerB = b
+        newerB.segmentId = "speaker-b-newer"
+        newerB.sequence = 2
+        newerB.startMs = 2_400
+        newerB.endMs = 3_600
+        newerB.sourceText = "Voice B newer"
+        newerB.sourceFinal = false
+        precondition(store.apply(newerB))
+        var revisedB = b
+        revisedB.sequence = 3
+        revisedB.translationState = .failed
+        precondition(store.apply(revisedB))
+        precondition(store.speakerSummaries.last?.recentText == "Voice B newer",
+                     "an older segment revision must not replace the latest speaker summary")
+        precondition(store.exportText.contains("说话人 A\nVoice A"))
+        precondition(store.exportMarkdown.contains("**说话人 B**"))
+        var invalid = b
+        invalid.segmentId = "speaker-f"
+        invalid.speakerId = "F"
+        invalid.sequence = 4
+        precondition(!store.apply(invalid), "only five speaker labels are valid")
+        store.beginSession("next")
+        precondition(store.speakerSummaries.isEmpty, "new sessions discard prior speaker summaries")
     }
 
     @MainActor private static func displayPreferenceChecks(store: SubtitleStore) throws {
@@ -201,6 +251,16 @@ struct SubtitleStoreChecks {
         let data = try config.validatedData()
         let decoded = try TerminologyConfiguration.decode(data)
         precondition(decoded == config)
+        let legacy = try TerminologyConfiguration.decode(Data(#"{"version":1,"profile":"ai","entries":[]}"#.utf8))
+        precondition(legacy.version == 2 && legacy.domains == ["ai"], "legacy AI selection must migrate")
+        let legacyGeneral = try TerminologyConfiguration.decode(Data(#"{"version":1,"profile":"general","entries":[]}"#.utf8))
+        precondition(legacyGeneral.domains.isEmpty, "legacy general selection must migrate")
+        config.domains = ["ai", "data", "finance", "quant"]
+        let combined = try TerminologyConfiguration.decode(config.validatedData())
+        precondition(combined == config)
+        config.domains = ["ai", "ai"]
+        precondition((try? config.validatedData()) == nil, "duplicate domains must be rejected")
+        config.domains = ["ai"]
         precondition(String(decoding: data, as: UTF8.self).contains("source_language"))
         config.entries.append(TerminologyEntry(source: "agent", target: "代理"))
         precondition((try? config.validatedData()) == nil, "duplicate terms must be rejected")

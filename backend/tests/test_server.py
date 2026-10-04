@@ -6,6 +6,7 @@ import sys
 from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
+import livesub.server as server_module
 from livesub.server import create_app
 
 from test_live_session import FakeASR, FakeTranslator
@@ -119,6 +120,28 @@ def test_control_messages_must_match_the_active_session_and_generation():
             assert socket.receive_json()["state"] == "listening"
 
 
+def test_speaker_selection_validates_identity_and_labels():
+    app = create_app(lambda _language: QuietASR(), FakeTranslator, token="secret")
+    with TestClient(app) as client:
+        with client.websocket_connect("/ws", headers={"Authorization": "Bearer secret"}) as socket:
+            socket.send_json({"kind": "start", "session_id": "s", "generation": 1,
+                              "source_language": "en", "target_language": "zh"})
+            assert socket.receive_json()["state"] == "loading"
+            assert socket.receive_json()["state"] == "listening"
+            socket.send_json({"kind": "select_speakers", "session_id": "wrong",
+                              "generation": 1, "speaker_ids": ["A"]})
+            assert socket.receive_json()["code"] == "control_rejected"
+            for labels in (["F"], ["A", "A"], ["A", "B", "C", "D", "E", "F"]):
+                socket.send_json({"kind": "select_speakers", "session_id": "s",
+                                  "generation": 1, "speaker_ids": labels})
+                assert socket.receive_json()["code"] == "invalid_message"
+            socket.send_json({"kind": "select_speakers", "session_id": "s",
+                              "generation": 1, "speaker_ids": ["A", "C"]})
+            socket.send_json({"kind": "stop", "session_id": "s", "generation": 1})
+            assert socket.receive_json()["state"] == "stopping"
+            assert socket.receive_json()["state"] == "idle"
+
+
 def test_invalid_start_does_not_construct_models_and_oversized_audio_is_rejected():
     constructed = []
 
@@ -154,3 +177,28 @@ def test_second_authorized_websocket_is_rejected_while_first_is_active():
                 with client.websocket_connect("/ws", headers={"Authorization": "Bearer secret"}) as second:
                     second.receive_json()
             assert error.value.code == 4409
+
+
+def test_reconnected_socket_reuses_server_model_ownership(monkeypatch):
+    sessions = []
+    original_session = server_module.LiveSession
+
+    class RecordingSession(original_session):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            sessions.append(self)
+
+    monkeypatch.setattr(server_module, "LiveSession", RecordingSession)
+    app = create_app(lambda _language: QuietASR(), FakeTranslator, token="secret")
+    with TestClient(app) as client:
+        for identity in ("first", "reconnected"):
+            with client.websocket_connect("/ws", headers={"Authorization": "Bearer secret"}) as socket:
+                socket.send_json({"kind": "start", "session_id": identity, "generation": 1,
+                                  "source_language": "en", "target_language": "zh"})
+                assert socket.receive_json()["state"] == "loading"
+                assert socket.receive_json()["state"] == "listening"
+                socket.send_json({"kind": "stop", "session_id": identity, "generation": 1})
+                assert socket.receive_json()["state"] == "stopping"
+                assert socket.receive_json()["state"] == "idle"
+    assert len(sessions) == 2
+    assert sessions[0]._model_lock is sessions[1]._model_lock

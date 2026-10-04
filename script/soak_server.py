@@ -179,10 +179,8 @@ async def run(args: argparse.Namespace) -> int:
         "target_language": target_language,
         "single_session_start_commands": 1,
         "protocol_version": support.PROTOCOL_VERSION,
-        "asr_model_repo": support.GGUF_REPO,
-        "asr_model_revision": support.GGUF_REVISION,
-        "asr_processor_repo": support.PROCESSOR_REPO,
-        "asr_processor_revision": support.PROCESSOR_REVISION,
+        "asr_model_repo": support.ASR_REPO,
+        "asr_model_revision": support.ASR_REVISION,
         "translation_model_repo": support.TRANSLATION_REPO,
         "translation_model_revision": support.TRANSLATION_REVISION,
         "model_assets_verified": False,
@@ -200,7 +198,6 @@ async def run(args: argparse.Namespace) -> int:
     env["LIVESUB_MODEL_ROOT"] = str(model_root)
     env["PYTHONPATH"] = os.pathsep.join([
         str(support.ROOT / "backend"),
-        str(support.ROOT / "third_party/Confucius4-R2T2"),
         env.get("PYTHONPATH", ""),
     ])
     process = None

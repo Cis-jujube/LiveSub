@@ -62,3 +62,4 @@ def test_final_source_rejects_stale_preview_but_accepts_matching_final():
         target_text="我们应该重新检查。",
         translation_state="final",
     )
+    assert state.source_snapshots == {2: "We should review."}

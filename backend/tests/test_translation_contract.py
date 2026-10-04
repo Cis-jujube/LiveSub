@@ -58,7 +58,8 @@ def translator(tmp_path: Path, output="你好，世界。"):
         calls.append((prompt, max_tokens))
         return output
 
-    return MLXTranslator(model_path, model_loader=load, text_generator=generate), loads, calls
+    return MLXTranslator(model_path, model_loader=load, text_generator=generate,
+                         terminology_path=tmp_path / "absent-terminology.json"), loads, calls
 
 
 def test_empty_input_preserves_identity_without_loading_model(tmp_path):
@@ -150,7 +151,8 @@ def test_model_load_and_inference_stay_on_one_worker_thread(tmp_path):
         worker_threads.append(get_ident())
         return "你好。"
 
-    engine = MLXTranslator(model_path, model_loader=load, text_generator=generate)
+    engine = MLXTranslator(model_path, model_loader=load, text_generator=generate,
+                           terminology_path=tmp_path / "absent-terminology.json")
     engine.prepare()
     with ThreadPoolExecutor(max_workers=1) as pool:
         result = pool.submit(engine.translate, request()).result()

@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "validated_at_utc": "2026-10-02T16:54:01.161903+00:00",
+  "package_path": "dist/previews/LiveSub-qwen-preview.app",
+  "scope": "Read-only preview signature verification and exact Python runtime-module comparison. No launch, formal-package replacement, package deletion, native inference execution, or private-subtitle read.",
+  "bundle_info": {
+    "CFBundleIdentifier": "local.jujube.livesub.preview.qwen",
+    "CFBundleExecutable": "LiveSub",
+    "CFBundleName": "LiveSub Qwen Preview",
+    "CFBundleShortVersionString": "0.1.0",
+    "CFBundleVersion": "1"
+  },
+  "info_plist_sha256": "7620853e5885ec4d5cd91b99383b809e4ef0539d0af9cc34ef405baf5330d329",
+  "codesign_verification": {
+    "command": [
+      "codesign",
+      "--verify",
+      "--deep",
+      "--strict",
+      "dist/previews/LiveSub-qwen-preview.app"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "",
+    "passed": true,
+    "evidence": "Executed as an independent tool command immediately before the module hashes; successful exit 0 with no diagnostic output."
+  },
+  "executable": {
+    "path": "dist/previews/LiveSub-qwen-preview.app/Contents/MacOS/LiveSub",
+    "sha256": "5a2a2911418664760756db0bc84204ea7dc3eb9b68477265121b7a2d2a33a300",
+    "size_bytes": 6090224
+  },
+  "backend_modules": {
+    "source_root": "backend/livesub",
+    "bundled_root": "dist/previews/LiveSub-qwen-preview.app/Contents/Resources/backend/livesub",
+    "included": "All .py files recursively, including __init__.py; __pycache__ directories excluded.",
+    "manifest_hash_definition": "SHA-256 of UTF-8 JSON mapping relative POSIX module paths to file SHA-256, sorted keys, separators=(comma,colon), ensure_ascii=True, no trailing newline.",
+    "source_module_count": 21,
+    "bundled_module_count": 16,
+    "matched_module_count": 16,
+    "source_manifest_sha256": "a4fb182826b2e193daf4d88c66be4ba0439d23df8b60c81d9128db597d5d1f29",
+    "bundled_manifest_sha256": "866ec1b77ba7187426524ce22a0bca86542f5465f83790520efa426da11ef2f2",
+    "extra_bundled_modules": [],
+    "mismatched_modules": [],
+    "source_manifest": {
+      "__init__.py": "5f79243ba4c950671a2b63cf2fb393d7007b6fe913f0a1992950c06fe8f2fdbf",
+      "asr/__init__.py": "5d7ed653fd218803bc4aab120e2b31c7a063d2685c532c8b457038055a6e1b1c",
+      "asr/base.py": "c60bb931fd6fa382362248ee3126fba49c8a56f72e3a0ff24ff17d05ccd1e94b",
+      "asr/download_model.py": "293b1b793a80a957daa34a9ecb368fc4c7235e65ab9ec6d2a9610d2ae405a73a",
+      "asr/download_qwen.py": "f1f195925e9080e491d18fb87dc1dd2e2116a1235f0a2f83dd28594341f50b42",
+      "asr/qwen.py": "f695c042cc044c030dd059393643183e1941240b90a17d6a397288ea9456f461",
+      "asr/r2t2.py": "74e25c6b0ab874810f3b7c50004a277e300e911b2e7f5538eb7787963f3420b5",
+      "protocol.py": "c3246b9d15f52143e23468328e0e4c2866d38595812d9252166e74e20b7bb2b4",
+      "server.py": "f4403f79756c226061191da8c6529297e29ae63c9464135ca3b80975cdc0dcf4",
+      "session.py": "e55c1684d4b14c24a6311ecd49ab88e9327532263cc0abc208f1fb8185f4a15c",
+      "subtitles/__init__.py": "dada30a0ce52e4fdddb9b3dbc8b3a343b36bf393202dc24de2644ef56cbe827a",
+      "subtitles/revision.py": "befff3c1acdb0adaa3e68c3eb2c6e695a9190778cae59b6546a1b46a00e65fe3",
+      "subtitles/segmenter.py": "561475c593baf04164ee7d150a08223a575d6242e893b2ca6aceb21c331ea677",
+      "translation/__init__.py": "69d0bb8732f49f41f1172db327e9025cd2a7463d33e9378a233920b767c1f914",
+      "translation/base.py": "a761aa27c37b6752bd50a1cdaf42ca57b006e19155b87af1e617685f07f4e5f8",
+      "translation/benchmark.py": "025da9c6b09635776565d8c458299d4859957f37d0a8783df7f59576f3c64afd",
+      "translation/download_model.py": "900010985b9c86cfcde5b7b6dfd9b1055baccaab4ca0fa5a6d012dddf1defcc9",
+      "translation/mlx_engine.py": "48fae4c99e1b3d061b642952c6db9546600d0834812c839aac4084c484304efc",
+      "translation/prompt_cache.py": "1d9b892be1c46fe5a09adf193c934b07e23f80aeb16341502b7a2c9672245d10",
+      "translation/scheduler.py": "64216764e65c4ae9f3b71c58ac9706b7c83ab94b078b0580a2ef708ae57c1590",
+      "translation/terminology.py": "bacba6e52cee5a2c44eb785012a0ac44370860678a00f2526f5f4e0600ad47f9"
+    },
+    "bundled_manifest": {
+      "__init__.py": "5f79243ba4c950671a2b63cf2fb393d7007b6fe913f0a1992950c06fe8f2fdbf",
+      "asr/__init__.py": "5d7ed653fd218803bc4aab120e2b31c7a063d2685c532c8b457038055a6e1b1c",
+      "asr/base.py": "c60bb931fd6fa382362248ee3126fba49c8a56f72e3a0ff24ff17d05ccd1e94b",
+      "asr/qwen.py": "f695c042cc044c030dd059393643183e1941240b90a17d6a397288ea9456f461",
+      "protocol.py": "c3246b9d15f52143e23468328e0e4c2866d38595812d9252166e74e20b7bb2b4",
+      "server.py": "f4403f79756c226061191da8c6529297e29ae63c9464135ca3b80975cdc0dcf4",
+      "session.py": "e55c1684d4b14c24a6311ecd49ab88e9327532263cc0abc208f1fb8185f4a15c",
+      "subtitles/__init__.py": "dada30a0ce52e4fdddb9b3dbc8b3a343b36bf393202dc24de2644ef56cbe827a",
+      "subtitles/revision.py": "befff3c1acdb0adaa3e68c3eb2c6e695a9190778cae59b6546a1b46a00e65fe3",
+      "subtitles/segmenter.py": "561475c593baf04164ee7d150a08223a575d6242e893b2ca6aceb21c331ea677",
+      "translation/__init__.py": "69d0bb8732f49f41f1172db327e9025cd2a7463d33e9378a233920b767c1f914",
+      "translation/base.py": "a761aa27c37b6752bd50a1cdaf42ca57b006e19155b87af1e617685f07f4e5f8",
+      "translation/mlx_engine.py": "48fae4c99e1b3d061b642952c6db9546600d0834812c839aac4084c484304efc",
+      "translation/prompt_cache.py": "1d9b892be1c46fe5a09adf193c934b07e23f80aeb16341502b7a2c9672245d10",
+      "translation/scheduler.py": "64216764e65c4ae9f3b71c58ac9706b7c83ab94b078b0580a2ef708ae57c1590",
+      "translation/terminology.py": "bacba6e52cee5a2c44eb785012a0ac44370860678a00f2526f5f4e0600ad47f9"
+    },
+    "all_source_python_files_are_bundled": false,
+    "missing_bundled_source_files": [
+      "asr/download_model.py",
+      "asr/download_qwen.py",
+      "asr/r2t2.py",
+      "translation/benchmark.py",
+      "translation/download_model.py"
+    ],
+    "runtime_module_parity": {
+      "definition": "All source Python modules except the explicit source-relative packaging exclusions in script/build_and_run.sh; every omitted source file is an existing legacy engine, model-preparation helper, or benchmark command.",
+      "packaging_script": "script/build_and_run.sh",
+      "packaging_script_sha256": "e69ab934bc6448d6e59b8bf86bf7ada0957bd295c0d3e2be2a5c823bfce711c0",
+      "exclusion_lines": [
+        83,
+        84,
+        85
+      ],
+      "intentional_source_only_modules": [
+        "asr/download_model.py",
+        "asr/download_qwen.py",
+        "asr/r2t2.py",
+        "translation/benchmark.py",
+        "translation/download_model.py"
+      ],
+      "source_runtime_module_count": 16,
+      "bundled_runtime_module_count": 16,
+      "source_runtime_manifest_sha256": "866ec1b77ba7187426524ce22a0bca86542f5465f83790520efa426da11ef2f2",
+      "bundled_runtime_manifest_sha256": "866ec1b77ba7187426524ce22a0bca86542f5465f83790520efa426da11ef2f2",
+      "all_runtime_modules_match": true,
+      "missing_runtime_modules": [],
+      "extra_runtime_modules": [],
+      "mismatched_runtime_modules": [],
+      "static_import_check": {
+        "method": "AST inspection of all included source modules, including lazy imports and relative imports; no module import or app execution.",
+        "included_module_imports_of_excluded_files": [],
+        "dynamic_import_calls": [],
+        "passed": true
+      },
+      "source_runtime_manifest": {
+        "__init__.py": "5f79243ba4c950671a2b63cf2fb393d7007b6fe913f0a1992950c06fe8f2fdbf",
+        "asr/__init__.py": "5d7ed653fd218803bc4aab120e2b31c7a063d2685c532c8b457038055a6e1b1c",
+        "asr/base.py": "c60bb931fd6fa382362248ee3126fba49c8a56f72e3a0ff24ff17d05ccd1e94b",
+        "asr/qwen.py": "f695c042cc044c030dd059393643183e1941240b90a17d6a397288ea9456f461",
+        "protocol.py": "c3246b9d15f52143e23468328e0e4c2866d38595812d9252166e74e20b7bb2b4",
+        "server.py": "f4403f79756c226061191da8c6529297e29ae63c9464135ca3b80975cdc0dcf4",
+        "session.py": "e55c1684d4b14c24a6311ecd49ab88e9327532263cc0abc208f1fb8185f4a15c",
+        "subtitles/__init__.py": "dada30a0ce52e4fdddb9b3dbc8b3a343b36bf393202dc24de2644ef56cbe827a",
+        "subtitles/revision.py": "befff3c1acdb0adaa3e68c3eb2c6e695a9190778cae59b6546a1b46a00e65fe3",
+        "subtitles/segmenter.py": "561475c593baf04164ee7d150a08223a575d6242e893b2ca6aceb21c331ea677",
+        "translation/__init__.py": "69d0bb8732f49f41f1172db327e9025cd2a7463d33e9378a233920b767c1f914",
+        "translation/base.py": "a761aa27c37b6752bd50a1cdaf42ca57b006e19155b87af1e617685f07f4e5f8",
+        "translation/mlx_engine.py": "48fae4c99e1b3d061b642952c6db9546600d0834812c839aac4084c484304efc",
+        "translation/prompt_cache.py": "1d9b892be1c46fe5a09adf193c934b07e23f80aeb16341502b7a2c9672245d10",
+        "translation/scheduler.py": "64216764e65c4ae9f3b71c58ac9706b7c83ab94b078b0580a2ef708ae57c1590",
+        "translation/terminology.py": "bacba6e52cee5a2c44eb785012a0ac44370860678a00f2526f5f4e0600ad47f9"
+      }
+    }
+  },
+  "passed": true,
+  "limitations": [
+    "Signature verification and source equality do not establish native launch, system-audio capture, subtitle UI behavior, sustained ASR/MT latency or user acceptance."
+  ]
+}

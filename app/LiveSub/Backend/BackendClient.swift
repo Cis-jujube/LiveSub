@@ -76,7 +76,8 @@ public final class BackendClient: ObservableObject {
         }
         guard frame.sampleRate == 16_000, frame.channels == 1,
               !frame.pcm16.isEmpty, frame.pcm16.count <= 5120,
-              frame.pcm16.count.isMultiple(of: 2) else {
+              frame.pcm16.count.isMultiple(of: 2),
+              frame.speakerID == nil || ["A", "B", "C", "D", "E"].contains(frame.speakerID!) else {
             throw BackendClientError.invalidAudioFrame
         }
         guard !audioSendInProgress else { throw BackendClientError.sendBacklogFull }
@@ -90,6 +91,22 @@ public final class BackendClient: ObservableObject {
         }
         nextSequence += 1
         nextSample += UInt64(frame.sampleCount)
+    }
+
+    public func selectSpeakers(_ speakerIDs: [String]?) async throws {
+        guard let sessionID, state == .connected,
+              backendPhase == "listening" || backendPhase == "paused" else {
+            throw BackendClientError.notListening
+        }
+        guard speakerIDs == nil || (speakerIDs!.count <= 5 &&
+              Set(speakerIDs!).count == speakerIDs!.count &&
+              speakerIDs!.allSatisfy({ ["A", "B", "C", "D", "E"].contains($0) })) else {
+            throw BackendClientError.invalidBackendEvent
+        }
+        try await send(BackendCommand(
+            kind: "select_speakers", sessionID: sessionID, generation: generation,
+            speakerIDs: speakerIDs
+        ))
     }
 
     public func pause() async throws {

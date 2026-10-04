@@ -52,8 +52,71 @@ PRESET = (
     Entry("zh", "上下文窗口", "context window"),
     Entry("zh", "提示词工程", "prompt engineering"),
     Entry("zh", "检索增强生成", "retrieval-augmented generation"),
+    Entry("zh", "检索、增强、生成", "retrieval-augmented generation"),
+    Entry("zh", "检索，增强，生成", "retrieval-augmented generation"),
     Entry("zh", "微调", "fine-tuning"),
 )
+DOMAIN_PRESETS = {
+    "ai": PRESET,
+    "software": (
+        Entry("en", "application programming interface", "应用程序编程接口"),
+        Entry("en", "API endpoint", "API 端点"),
+        Entry("en", "version control", "版本控制"),
+        Entry("en", "continuous integration", "持续集成"),
+        # Selected titles adapted from CNCF Cloud Native Glossary contributors,
+        # documentation CC BY 4.0. Reviewed terms only, no definitions imported.
+        # https://creativecommons.org/licenses/by/4.0/
+        # https://github.com/cncf/glossary/tree/dea5192058add96711c7cbf874f1a18b2c29acdb/content/zh-cn
+        Entry("en", "observability", "可观测性"),
+        Entry("en", "container orchestration", "容器编排"),
+        Entry("en", "service mesh", "服务网格"),
+        Entry("en", "load balancer", "负载均衡器"),
+        Entry("en", "event-driven architecture", "事件驱动架构"),
+        Entry("en", "idempotence", "幂等性"),
+        Entry("en", "continuous delivery", "持续交付"),
+        Entry("zh", "版本控制", "version control"),
+        Entry("zh", "持续集成", "continuous integration"),
+        Entry("zh", "接口端点", "API endpoint"),
+    ),
+    "data": (
+        Entry("en", "confidence interval", "置信区间"),
+        Entry("en", "sample size", "样本量"),
+        Entry("en", "standard deviation", "标准差"),
+        Entry("en", "p-value", "p 值"),
+        Entry("zh", "置信区间", "confidence interval"),
+        Entry("zh", "样本量", "sample size"),
+        Entry("zh", "标准差", "standard deviation"),
+        Entry("zh", "机器学习", "machine learning"),
+    ),
+    "finance": (
+        Entry("en", "basis points", "基点"),
+        Entry("en", "interest rates", "利率"),
+        Entry("en", "cash flow", "现金流"),
+        Entry("en", "price-to-earnings ratio", "市盈率"),
+        Entry("zh", "市盈率", "price-to-earnings ratio"),
+        Entry("zh", "现金流", "cash flow"),
+        Entry("zh", "基点", "basis points"),
+        Entry("zh", "利率", "interest rate"),
+    ),
+    "quant": (
+        Entry("en", "Sharpe ratio", "夏普比率"),
+        Entry("en", "backtesting", "回测"),
+        Entry("en", "volatility", "波动率"),
+        Entry("en", "risk-adjusted return", "风险调整后收益"),
+        Entry("zh", "夏普比率", "Sharpe ratio"),
+        Entry("zh", "回测", "backtesting"),
+        Entry("zh", "波动率", "volatility"),
+        Entry("zh", "风险调整后收益", "risk-adjusted return"),
+    ),
+    "blockchain": (
+        Entry("en", "security token", "证券型代币"),
+        Entry("en", "smart contract", "智能合约"),
+        Entry("en", "proof of stake", "权益证明"),
+        Entry("zh", "证券型代币", "security token"),
+        Entry("zh", "智能合约", "smart contract"),
+        Entry("zh", "权益证明", "proof of stake"),
+    ),
+}
 TOKEN_CUES = re.compile(r"\b(?:next|input|output) tokens?\b|\btoken (?:budget|limit|count|prediction)\b", re.I)
 LLM_CUES = re.compile(r"\b(?:LLMs?|GPT\w*|Qwen\w*|tokeniz\w*|prompts?|inference|embeddings?)\b|\blanguage models?\b|\bcontext windows?\b|大语言模型|语言模型|上下文窗口|提示词|分词|推理", re.I)
 AGENT_CUES = re.compile(r"\b(?:AI|artificial intelligence|software|computational|multi-agent|tool calls?|tool use|autonomous system)\b|智能体|人工智能|工具调用", re.I)
@@ -61,13 +124,24 @@ NON_AI_AGENT = re.compile(r"\b(?:real[ -]estate|travel|insurance|secret|literary
 NON_LLM_TOKEN = re.compile(r"\b(?:authentication|authorization|access|refresh|bearer|security|OAuth|JWT|API|crypto\w*|blockchain|subway|arcade|bus|gratitude|appreciation)\b|身份验证|访问令牌|代币", re.I)
 
 
-def parse_settings(value: object) -> tuple[str, tuple[Entry, ...]]:
-    if not isinstance(value, dict) or type(value.get("version")) is not int or value["version"] != 1:
-        raise ValueError("terminology version must be 1")
-    profile = value.get("profile")
+def parse_settings(value: object) -> tuple[tuple[str, ...], tuple[Entry, ...]]:
+    if not isinstance(value, dict) or type(value.get("version")) is not int or value["version"] not in (1, 2):
+        raise ValueError("terminology version must be 1 or 2")
+    if value["version"] == 1:
+        profile = value.get("profile")
+        if profile not in ("ai", "general"):
+            raise ValueError("invalid terminology profile")
+        domains = ("ai",) if profile == "ai" else ()
+    else:
+        raw_domains = value.get("domains")
+        if (not isinstance(raw_domains, list) or len(raw_domains) > len(DOMAIN_PRESETS)
+                or any(not isinstance(domain, str) or domain not in DOMAIN_PRESETS for domain in raw_domains)
+                or len(set(raw_domains)) != len(raw_domains)):
+            raise ValueError("invalid terminology domains")
+        domains = tuple(raw_domains)
     entries = value.get("entries")
-    if profile not in ("ai", "general") or not isinstance(entries, list) or len(entries) > MAX_ENTRIES:
-        raise ValueError("invalid terminology profile or entry count")
+    if not isinstance(entries, list) or len(entries) > MAX_ENTRIES:
+        raise ValueError("invalid terminology entry count")
     parsed = {}
     for item in entries:
         if not isinstance(item, dict) or item.get("source_language") not in ("en", "zh"):
@@ -79,26 +153,38 @@ def parse_settings(value: object) -> tuple[str, tuple[Entry, ...]]:
             raise ValueError("terms must contain 1–80 visible characters")
         entry = Entry(item["source_language"], source.strip(), target.strip())
         parsed[(entry.source_language, normalize(entry.source))] = entry
-    return profile, tuple(parsed.values())
+    return domains, tuple(parsed.values())
 
 
 class Terminology:
     def __init__(self, path: Path | None = None):
         self.path = path or default_terminology_path()
-        self._settings: tuple[str, tuple[Entry, ...]] = ("ai", ())
+        self._settings: tuple[tuple[str, ...], tuple[Entry, ...]] = (("ai",), ())
         self._last_warning: str | None = None
+        self._file_signature: tuple[int, int, int, int, int] | None = None
+        self._matcher_settings = None
+        self._matchers: tuple[tuple[Entry, re.Pattern], ...] = ()
 
-    def load(self) -> tuple[str, tuple[Entry, ...]]:
+    def load(self) -> tuple[tuple[str, ...], tuple[Entry, ...]]:
         try:
+            metadata = self.path.stat()
+            signature = (metadata.st_dev, metadata.st_ino, metadata.st_size,
+                         metadata.st_mtime_ns, metadata.st_ctime_ns)
+            if signature == self._file_signature:
+                return self._settings
             with self.path.open("rb") as stream:
                 data = stream.read(MAX_FILE_BYTES + 1)
+            # The UI replaces the file atomically. Cache the signature checked
+            # before opening: a concurrent replacement is reread next time.
+            self._file_signature = signature
             if len(data) > MAX_FILE_BYTES:
                 raise ValueError("terminology file exceeds 64 KiB")
             self._settings = parse_settings(json.loads(data))
             self._last_warning = None
         except FileNotFoundError:
-            self._settings = ("ai", ())
+            self._settings = (("ai",), ())
             self._last_warning = None
+            self._file_signature = None
         except (OSError, UnicodeError, ValueError, RecursionError) as error:
             # Atomic UI writes avoid partial reads; external malformed edits retain last good state.
             warning = type(error).__name__
@@ -108,20 +194,29 @@ class Terminology:
         return self._settings
 
     def spans(self, language: str, source: str, context_sources: list[str]) -> list[tuple[int, int, Entry]]:
-        profile, custom = self.load()
-        entries = {(e.source_language, normalize(e.source)): e for e in PRESET} if profile == "ai" else {}
-        entries.update({(e.source_language, normalize(e.source)): e for e in custom})
+        settings = self.load()
+        if settings != self._matcher_settings:
+            domains, custom = settings
+            entries = {(e.source_language, normalize(e.source)): e
+                       for domain in DOMAIN_PRESETS for e in DOMAIN_PRESETS[domain] if domain in domains}
+            entries.update({(e.source_language, normalize(e.source)): e for e in custom})
+            matchers = []
+            for entry in entries.values():
+                term = normalize(entry.source)
+                # ASCII word boundaries permit terms adjacent to Chinese while
+                # excluding tokenization/agency. Compile once per settings.
+                left = r"(?<![a-z0-9_])" if term[0].isascii() and term[0].isalnum() else ""
+                right = r"(?![a-z0-9_])" if term[-1].isascii() and term[-1].isalnum() else ""
+                matchers.append((entry, re.compile(left + re.escape(term) + right)))
+            self._matchers = tuple(matchers)
+            self._matcher_settings = settings
         text, offsets = normalized_offsets(source)
         history = " ".join(context_sources)
         matches = []
-        for entry in entries.values():
+        for entry, pattern in self._matchers:
             if entry.source_language != language:
                 continue
-            term = normalize(entry.source)
-            # ASCII word boundaries allow English terms adjacent to Chinese, but never tokenization/agency.
-            left = r"(?<![a-z0-9_])" if term[0].isascii() and term[0].isalnum() else ""
-            right = r"(?![a-z0-9_])" if term[-1].isascii() and term[-1].isalnum() else ""
-            for match in re.finditer(left + re.escape(term) + right, text):
+            for match in pattern.finditer(text):
                 # A normalized character may expand to several characters (¼ → 1⁄4),
                 # or several source characters may compose (e + accent → é).
                 # Never replace only part of that indivisible source span.
@@ -212,6 +307,16 @@ class ProtectedTerms:
             previous = end
         chunks.append(source[previous:])
         self.source = "".join(chunks)
+
+    def term_only_output(self) -> str | None:
+        """One complete preferred term needs no model to translate surrounding text."""
+        if len(self.replacements) != 1:
+            return None
+        marker = next(iter(self.replacements))
+        match = re.fullmatch(re.escape(marker) + r"\s*([.!?。！？]?)", self.source.strip())
+        if match is None:
+            return None
+        return marker + match[1].translate(str.maketrans(".!?", "。！？"))
 
     def restore(self, output: str) -> str:
         for marker in self.replacements:

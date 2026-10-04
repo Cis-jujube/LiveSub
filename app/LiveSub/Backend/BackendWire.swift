@@ -32,6 +32,7 @@ public struct BackendSegment: Decodable, Sendable {
     public let translatedSourceText: String
     public let translatedSourceRevision: UInt64
     public let translationState: String
+    public let speakerID: String?
 
     private enum CodingKeys: String, CodingKey {
         case generation, sequence
@@ -48,6 +49,7 @@ public struct BackendSegment: Decodable, Sendable {
         case translatedSourceText = "translated_source_text"
         case translatedSourceRevision = "translated_source_revision"
         case translationState = "translation_state"
+        case speakerID = "speaker_id"
     }
 }
 
@@ -70,6 +72,8 @@ struct BackendCommand: Encodable {
     var sampleRate: Int?
     var channels: Int?
     var pcm16: String?
+    var speakerID: String? = nil
+    var speakerIDs: [String]? = nil
 
     private enum CodingKeys: String, CodingKey {
         case kind, generation, sequence, channels, pcm16
@@ -78,6 +82,8 @@ struct BackendCommand: Encodable {
         case targetLanguage = "target_language"
         case startSample = "start_sample"
         case sampleRate = "sample_rate"
+        case speakerID = "speaker_id"
+        case speakerIDs = "speaker_ids"
     }
 
     static func audio(_ frame: AudioFrame) -> BackendCommand {
@@ -89,7 +95,8 @@ struct BackendCommand: Encodable {
             startSample: frame.startSample,
             sampleRate: frame.sampleRate,
             channels: frame.channels,
-            pcm16: frame.pcm16.base64EncodedString()
+            pcm16: frame.pcm16.base64EncodedString(),
+            speakerID: frame.speakerID
         )
     }
 }

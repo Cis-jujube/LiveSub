@@ -1,0 +1,140 @@
+{
+  "date": "2026-10-02",
+  "scope": "Serial one-shot paced WAV model/session comparison. No native capture, speaker detection, WebSocket or UI. One run per path/case; warm model load excluded but kernel startup and scheduling variance remain. Before sustained controlled run and after sustained controlled run had no concurrent Swift build or other test-model inference. Model call duration sums include overlapping waits in the before path; do not interpret them as GPU utilization or energy consumption.",
+  "pairs": [
+    {
+      "case": "English short",
+      "fixture_sha256": "6a42583f552a95e5a946a841e5220ecb54555c76980680c4f4580ee03c5db8bf",
+      "identical_final_source_and_translation": true,
+      "final_segments": 1,
+      "before": {
+        "audio_ms": 10010.06,
+        "frames_accepted": 63,
+        "frames_rejected": 0,
+        "first_current_translation_ms": 1807.33,
+        "current_translation_wait_median_ms": 510.88,
+        "stop_to_idle_ms": 1606.03,
+        "asr_total_ms": 7224.81,
+        "generation_total_ms": 5334.32,
+        "generation_calls": 11,
+        "passed": true
+      },
+      "after": {
+        "audio_ms": 10010.06,
+        "frames_accepted": 63,
+        "frames_rejected": 0,
+        "first_current_translation_ms": 1759.49,
+        "current_translation_wait_median_ms": 465.36,
+        "stop_to_idle_ms": 2172.84,
+        "asr_total_ms": 5892.74,
+        "generation_total_ms": 4628.54,
+        "generation_calls": 10,
+        "passed": true
+      },
+      "before_asr_calls": 12,
+      "after_asr_calls": 11
+    },
+    {
+      "case": "English sustained controlled",
+      "fixture_sha256": "72f2ecafb97a50980833c3460cf396731ea6fdba1a2ef2504f9908ded7b40753",
+      "identical_final_source_and_translation": true,
+      "final_segments": 4,
+      "before": {
+        "audio_ms": 42869.62,
+        "frames_accepted": 268,
+        "frames_rejected": 0,
+        "first_current_translation_ms": 1870.46,
+        "current_translation_wait_median_ms": 509.09,
+        "stop_to_idle_ms": 1626.92,
+        "asr_total_ms": 34091.57,
+        "generation_total_ms": 22419.06,
+        "generation_calls": 41,
+        "passed": true
+      },
+      "after": {
+        "audio_ms": 42869.62,
+        "frames_accepted": 268,
+        "frames_rejected": 0,
+        "first_current_translation_ms": 1830.3,
+        "current_translation_wait_median_ms": 422.46,
+        "stop_to_idle_ms": 1548.47,
+        "asr_total_ms": 24187.56,
+        "generation_total_ms": 16009.12,
+        "generation_calls": 36,
+        "passed": true
+      },
+      "before_asr_calls": 48,
+      "after_asr_calls": 43
+    },
+    {
+      "case": "Chinese short",
+      "fixture_sha256": "6a1c0ebb3acb7302714874a212259be8d8f5f2747954a88b7fb8ced459b65586",
+      "identical_final_source_and_translation": true,
+      "final_segments": 1,
+      "before": {
+        "audio_ms": 10366.38,
+        "frames_accepted": 65,
+        "frames_rejected": 0,
+        "first_current_translation_ms": 1634.11,
+        "current_translation_wait_median_ms": 364.96,
+        "stop_to_idle_ms": 1750.12,
+        "asr_total_ms": 7779.06,
+        "generation_total_ms": 5032.91,
+        "generation_calls": 12,
+        "passed": true
+      },
+      "after": {
+        "audio_ms": 10366.38,
+        "frames_accepted": 65,
+        "frames_rejected": 0,
+        "first_current_translation_ms": 1635.55,
+        "current_translation_wait_median_ms": 383.03,
+        "stop_to_idle_ms": 1796.39,
+        "asr_total_ms": 5762.31,
+        "generation_total_ms": 4177.95,
+        "generation_calls": 12,
+        "passed": true
+      },
+      "before_asr_calls": 13,
+      "after_asr_calls": 12
+    }
+  ],
+  "authenticated_model_smoke": {
+    "passed": true,
+    "model_assets_verified": true,
+    "unauthorized_rejected": true,
+    "frames_sent": 63,
+    "frame_rejected_errors": 0,
+    "audio_overflow_errors": 0,
+    "translation_overflow_errors": 0,
+    "expected_tail_substring_found": true
+  },
+  "package": {
+    "path": "dist/previews/LiveSub-qwen-preview.app",
+    "bundle_id": "local.jujube.livesub.preview.qwen",
+    "strict_codesign_verified": true,
+    "runtime_imports_passed": true,
+    "runtime_matches_source": true,
+    "python_file_sha256": {
+      "server.py": "f4403f79756c226061191da8c6529297e29ae63c9464135ca3b80975cdc0dcf4",
+      "protocol.py": "c3246b9d15f52143e23468328e0e4c2866d38595812d9252166e74e20b7bb2b4",
+      "session.py": "a7aed5835a79e281adad97e287ccc8fb883af1859451dc2d3f4252af05d25b18",
+      "__init__.py": "5f79243ba4c950671a2b63cf2fb393d7007b6fe913f0a1992950c06fe8f2fdbf",
+      "translation/prompt_cache.py": "387248cf338b558c3070975f53ed49e9213a481f56e0ee13a8671c9f18d203e9",
+      "translation/__init__.py": "69d0bb8732f49f41f1172db327e9025cd2a7463d33e9378a233920b767c1f914",
+      "translation/scheduler.py": "64216764e65c4ae9f3b71c58ac9706b7c83ab94b078b0580a2ef708ae57c1590",
+      "translation/mlx_engine.py": "48fae4c99e1b3d061b642952c6db9546600d0834812c839aac4084c484304efc",
+      "translation/terminology.py": "bacba6e52cee5a2c44eb785012a0ac44370860678a00f2526f5f4e0600ad47f9",
+      "translation/base.py": "a761aa27c37b6752bd50a1cdaf42ca57b006e19155b87af1e617685f07f4e5f8",
+      "asr/__init__.py": "5d7ed653fd218803bc4aab120e2b31c7a063d2685c532c8b457038055a6e1b1c",
+      "asr/qwen.py": "f695c042cc044c030dd059393643183e1941240b90a17d6a397288ea9456f461",
+      "asr/base.py": "c60bb931fd6fa382362248ee3126fba49c8a56f72e3a0ff24ff17d05ccd1e94b",
+      "subtitles/__init__.py": "dada30a0ce52e4fdddb9b3dbc8b3a343b36bf393202dc24de2644ef56cbe827a",
+      "subtitles/revision.py": "befff3c1acdb0adaa3e68c3eb2c6e695a9190778cae59b6546a1b46a00e65fe3",
+      "subtitles/segmenter.py": "561475c593baf04164ee7d150a08223a575d6242e893b2ca6aceb21c331ea677"
+    },
+    "native_launched": false,
+    "formal_package_replaced": false,
+    "reason": "Existing formal LiveSub is running; save/export and exit still required."
+  }
+}

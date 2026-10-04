@@ -19,6 +19,7 @@ from .base import (
 )
 
 from .terminology import MAX_GLOSSARY_TOKENS, ProtectedTerms, Terminology, normalize
+from .prompt_cache import PromptCachedGenerator
 
 MAX_INPUT_TOKENS = 2048
 MAX_CONTEXT_TOKENS = 512
@@ -73,7 +74,9 @@ class MLXTranslator:
         self.model_path = model_path or default_model_path()
         self._terminology = Terminology(terminology_path)
         self._model_loader = model_loader or _load_local_model
-        self._text_generator = text_generator or _generate
+        self._prompt_generator = PromptCachedGenerator() if text_generator is None else None
+        self._text_generator = text_generator or self._prompt_generator
+        self._prompt_identity: tuple[str, int, str, str] | None = None
         self._model = None
         self._tokenizer = None
         self._worker_lock = Lock()
@@ -125,6 +128,8 @@ class MLXTranslator:
         while True:
             item = self._work.get()
             if item is None:
+                self._reset_prompt_cache()
+                self._last_generation = None
                 self._work.task_done()
                 return
             operation, payload, future = item
@@ -135,16 +140,28 @@ class MLXTranslator:
                 else:
                     future.set_result(self._translate_loaded(payload))
             except Exception as error:
+                self._reset_prompt_cache()
                 future.set_exception(error)
             finally:
                 self._work.task_done()
 
     def _translate_loaded(self, request: TranslationRequest) -> TranslationResult:
+        identity = (request.session_id, request.generation, request.source_language, request.target_language)
+        if identity != self._prompt_identity:
+            self._reset_prompt_cache()
+            self._prompt_identity = identity
         source = request.source_text.strip()
         self._active_protection = None
         prompt = self._build_prompt(request, source)
         key = (request.session_id, request.generation, request.segment_id, source, prompt)
-        if self._last_generation is not None and self._last_generation[0] == key:
+        term_only = (
+            self._active_protection.term_only_output()
+            if request.source_language == "en" and request.target_language == "zh"
+            and self._active_protection is not None else None
+        )
+        if term_only is not None:
+            raw_output = term_only
+        elif self._last_generation is not None and self._last_generation[0] == key:
             raw_output = self._last_generation[1]
         else:
             raw_output = self._text_generator(
@@ -162,6 +179,11 @@ class MLXTranslator:
             raise TranslationOutputTooLong("model output exceeded 256 tokens")
         self._last_generation = (key, raw_output)
         return self._result(request, source, output)
+
+    def _reset_prompt_cache(self) -> None:
+        if self._prompt_generator is not None:
+            self._prompt_generator.reset()
+        self._prompt_identity = None
 
     def _ensure_model(self) -> None:
         if self._model is None:

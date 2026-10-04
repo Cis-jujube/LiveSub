@@ -12,17 +12,19 @@ public struct AudioFrame: Sendable, Equatable {
     public let sequence: UInt64
     public let startSample: UInt64
     public let pcm16: Data
+    public let speakerID: String?
 
     public var sampleRate: Int { PCMFrameConverter.sampleRate }
     public var channels: Int { 1 }
     public var sampleCount: Int { pcm16.count / MemoryLayout<Int16>.size }
 
-    public init(sessionID: String, generation: UInt64, sequence: UInt64, startSample: UInt64, pcm16: Data) {
+    public init(sessionID: String, generation: UInt64, sequence: UInt64, startSample: UInt64, pcm16: Data, speakerID: String? = nil) {
         self.sessionID = sessionID
         self.generation = generation
         self.sequence = sequence
         self.startSample = startSample
         self.pcm16 = pcm16
+        self.speakerID = speakerID
     }
 }
 
@@ -30,6 +32,8 @@ public enum AudioCaptureError: LocalizedError {
     case alreadyRunning
     case microphoneDenied
     case screenRecordingDenied(String)
+    case screenCaptureMissingEntitlements(String)
+    case screenCaptureStartFailed(String)
     case screenCaptureFailed(String)
     case noInputDevice
     case noDisplay
@@ -47,7 +51,11 @@ public enum AudioCaptureError: LocalizedError {
         case .alreadyRunning: "Audio capture is already running."
         case .microphoneDenied: "Microphone access is not available. Allow LiveSub in System Settings."
         case .screenRecordingDenied(let detail):
-            "System audio capture needs Screen & System Audio Recording permission. Allow LiveSub in System Settings, then reopen it. (\(detail))"
+            "macOS did not allow this version of LiveSub to record screen and system audio. If the setting is already on, check this app version and its permission state, then reopen it. (\(detail))"
+        case .screenCaptureMissingEntitlements(let detail):
+            "System audio capture is missing a required entitlement. Check the app's signing configuration. (\(detail))"
+        case .screenCaptureStartFailed(let detail):
+            "The macOS capture service could not start system audio capture. Try this source again. (\(detail))"
         case .screenCaptureFailed(let detail): "System audio capture failed: \(detail)"
         case .noInputDevice: "No microphone input device is available."
         case .noDisplay: "No display is available for system audio capture."

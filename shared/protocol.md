@@ -20,8 +20,15 @@ and does not cause a second backend stream. A duplicate start is a no-op.
 
 `audio`: `{"kind":"audio","session_id":"uuid","generation":1,
 "sequence":0,"start_sample":0,"sample_rate":16000,"channels":1,
-"pcm16":"<base64>"}`. Frames are mono, 16 kHz, PCM16 and normally 2560 samples.
+"pcm16":"<base64>","speaker_id":"A"}`. Frames are mono, 16 kHz, PCM16 and normally 2560 samples.
 The backend rejects malformed or out-of-order frames before model inference.
+`speaker_id` is optional (`A`–`E`); null means the detector could not assign a voice.
+
+`select_speakers`: `{"kind":"select_speakers","session_id":"uuid",
+"generation":1,"speaker_ids":["A","C"]}`. The list accepts up to five distinct
+IDs. Null selects all speakers. Selection affects subsequent translation work;
+the source transcript still records other detected speakers. A resumed generation
+must send the selection again before sending audio.
 
 `pause`, `resume`, `stop`: carry `session_id` and `generation`. For `resume`,
 `generation` is the new generation and `source_language` / `target_language`
@@ -44,9 +51,11 @@ Pausing or stopping flushes received audio; the app stops native capture first.
   generation's accepted audio. These are not word-level timestamps.
 - Direction: `source_language` and `target_language` (`en` or `zh`).
 - Source: `source_text`, `source_revision`, `source_final`.
+- Optional speaker: `speaker_id` (`A`–`E` or null).
 - Translation: `target_text`, `translated_source_text`,
   `translated_source_revision`, and `translation_state` (`pending`, `preview`,
-  `final`, `failed`).
+  `final`, `failed`, `skipped`). `skipped` means the speaker was not selected;
+  its target fields are empty.
 
 The source can change while a segment is active. A translation must carry the
 exact source snapshot and revision it translated. The main window shows the

@@ -1,5 +1,6 @@
 """One audio/ASR stream and one translation worker per local backend session."""
 
+from _thread import LockType
 import asyncio
 from collections import deque
 from collections.abc import Awaitable, Callable
@@ -7,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, replace
 from functools import partial
 import math
+from threading import Lock
 import time
 
 from livesub.asr.base import ASREngine, ASREvent
@@ -21,6 +23,23 @@ from livesub.translation.mlx_engine import MAX_CONTEXT_PAIRS
 _DRAIN_TIMEOUT_SECONDS = 10
 _TRANSLATION_TIMEOUT_SECONDS = 10
 _PREVIEW_INTERVAL_SECONDS = 0.75
+
+
+@dataclass(frozen=True, slots=True)
+class ModelCallTiming:
+    """Optional local trace of executor queuing, model ownership and execution."""
+
+    kind: str
+    operation: str
+    session_id: str | None
+    generation: int
+    segment_id: str | None
+    source_revision: int | None
+    submitted_at: float
+    worker_started_at: float
+    model_started_at: float
+    finished_at: float
+    error_type: str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -99,6 +118,9 @@ class LiveSession:
         asr: ASREngine,
         translator: Translator,
         emit: Callable[[dict], Awaitable[None]],
+        *,
+        model_lock: LockType | None = None,
+        model_observer: Callable[[ModelCallTiming], None] | None = None,
     ) -> None:
         self.gate = SessionGate()
         self._asr = asr
@@ -120,8 +142,16 @@ class LiveSession:
         self._subtitle_sequence = 0
         self._asr_offset_samples = 0
         self._silence_samples = 0
+        self._current_speaker_id: str | None = None
+        self._asr_has_audio = False
+        self._selected_speakers: frozenset[str] | None = None
         self._closed = False
         self._asr_healthy = True
+        # Qwen MPS and MLX share one GPU. Hold ownership inside the worker
+        # callable so cancelling its asyncio waiter cannot release the GPU
+        # while the underlying inference is still running.
+        self._model_lock = model_lock if model_lock is not None else Lock()
+        self._model_observer = model_observer
         self._asr_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="livesub-asr")
         self._translation_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="livesub-translation")
 
@@ -181,6 +211,30 @@ class LiveSession:
             return False
         self._audio.put_nowait(frame)
         return True
+
+    async def select_speakers(self, speaker_ids: list[str] | None) -> None:
+        if speaker_ids is not None and (
+            len(speaker_ids) > 5
+            or len(set(speaker_ids)) != len(speaker_ids)
+            or any(speaker_id not in {"A", "B", "C", "D", "E"} for speaker_id in speaker_ids)
+        ):
+            raise ValueError("choose at most five distinct detected speakers")
+        self._selected_speakers = None if speaker_ids is None else frozenset(speaker_ids)
+        for segment_id, meta in list(self._metadata.items()):
+            revision = self._revisions.get(segment_id)
+            if revision is None:
+                continue
+            if self._speaker_is_selected(meta.speaker_id):
+                revision.request_translation()
+            else:
+                revision.skip_translation()
+            await self._emit_subtitle(segment_id)
+            if meta.source_final and not self._speaker_is_selected(meta.speaker_id):
+                self._revisions.pop(segment_id, None)
+                self._metadata.pop(segment_id, None)
+
+    def _speaker_is_selected(self, speaker_id: str | None) -> bool:
+        return self._selected_speakers is None or speaker_id in self._selected_speakers
 
     async def pause(self) -> bool:
         if self.gate.state == "listening":
@@ -298,6 +352,9 @@ class LiveSession:
         self._last_preview_at = {}
         self._asr_offset_samples = 0
         self._silence_samples = 0
+        self._current_speaker_id = None
+        self._asr_has_audio = False
+        self._selected_speakers = None
 
     async def _drain_audio(self) -> bool:
         task = self._audio_task
@@ -334,23 +391,42 @@ class LiveSession:
             frame = await self._audio.get()
             if frame is None:
                 break
-            events = await self._run_asr(self._asr.push, frame.pcm16)
+            # Diarization leaves silent frames unattributed. Keep them with the
+            # preceding voice so a pause does not reset ASR every 160 ms.
+            rms = self._rms(frame.pcm16)
+            speaker_id = frame.speaker_id
+            if speaker_id is None and self._current_speaker_id is not None and rms < 400:
+                speaker_id = self._current_speaker_id
+            if speaker_id != self._current_speaker_id:
+                if self._asr_has_audio:
+                    await self._flush_asr()
+                    await self._run_asr(self._asr.reset)
+                    await self._run_asr(self._asr.start, sample_rate=16_000)
+                self._asr_offset_samples = frame.start_sample
+                self._current_speaker_id = speaker_id
+                self._silence_samples = 0
+            # A slow inference or a diarization batch can leave several frames
+            # queued. Feed all of them in order, but decode the newest available
+            # preview instead of spending GPU time replaying obsolete previews.
+            # Adapters without this capability retain their streaming behavior.
+            push = self._asr.push
+            if not self._audio.empty():
+                push = getattr(self._asr, "push_without_preview", push)
+            events = await self._run_asr(push, frame.pcm16)
+            self._asr_has_audio = True
             await self._process_asr(events)
             segmenter = self._segmenter
             if segmenter is None:
                 continue
-            if self._rms(frame.pcm16) < 400:
+            if rms < 400:
                 self._silence_samples += frame.sample_count
             else:
                 self._silence_samples = 0
             text = segmenter.active_text
-            spoken_ms = (frame.start_sample + frame.sample_count) * 1_000 // 16_000
-            punctuated = (
-                text.endswith((".", "!", "?", "。", "！", "？", ",", "，", ";", "；"))
-                and spoken_ms - segmenter.active_start_ms >= 2_000
-            )
             too_long = len(text) >= 80 if segmenter.source_language == "zh" else len(text.split()) >= 35
-            if text and (self._silence_samples >= 8_000 or punctuated or too_long):
+            # A Qwen preview can add punctuation before the next spoken word.
+            # Only silence or a length bound may seal a revisable ASR segment.
+            if text and (self._silence_samples >= 8_000 or too_long):
                 await self._flush_asr()
                 self._asr_offset_samples = frame.start_sample + frame.sample_count
                 await self._run_asr(self._asr.reset)
@@ -360,6 +436,7 @@ class LiveSession:
 
     async def _flush_asr(self) -> None:
         events = await self._run_asr(self._asr.finish)
+        self._asr_has_audio = False
         await self._process_asr(events)
 
     async def _process_asr(self, events: list[ASREvent]) -> None:
@@ -371,7 +448,7 @@ class LiveSession:
             adjusted = ASREvent(
                 event.text, event.start_ms + offset_ms, event.end_ms + offset_ms, event.final
             )
-            update = segmenter.apply(adjusted)
+            update = segmenter.apply(adjusted, speaker_id=self._current_speaker_id)
             if update is None:
                 continue
             state = self._revisions.setdefault(update.segment_id, SegmentRevisionState())
@@ -380,7 +457,16 @@ class LiveSession:
             ):
                 continue
             self._metadata[update.segment_id] = update
+            if self._speaker_is_selected(update.speaker_id):
+                state.request_translation()
+            else:
+                state.skip_translation()
             await self._emit_subtitle(update.segment_id)
+            if not self._speaker_is_selected(update.speaker_id):
+                if update.source_final:
+                    self._revisions.pop(update.segment_id, None)
+                    self._metadata.pop(update.segment_id, None)
+                continue
             request = TranslationRequest(
                 session_id=update.session_id,
                 generation=update.generation,
@@ -391,6 +477,7 @@ class LiveSession:
                 source_text=update.source_text,
             )
             if update.source_final:
+                self._last_preview_at.pop(update.segment_id, None)
                 deferred = self._deferred_previews.pop(update.segment_id, None)
                 if deferred is not None:
                     deferred[1].cancel()
@@ -418,9 +505,11 @@ class LiveSession:
             # continually postpone the latest preview.
             self._deferred_previews[request.segment_id] = (request, deferred[1])
             return
+        recommend_interval = getattr(self._translator, "preview_interval_seconds", None)
+        interval = recommend_interval(request.source_language) if recommend_interval else None
         delay = (
             self._last_preview_at.get(request.segment_id, 0)
-            + _PREVIEW_INTERVAL_SECONDS - time.monotonic()
+            + (interval if interval is not None else _PREVIEW_INTERVAL_SECONDS) - time.monotonic()
         )
         if delay <= 0:
             self._publish_preview(request)
@@ -453,6 +542,11 @@ class LiveSession:
                 await self._translation_ready.wait()
                 continue
             request, is_final = item
+            meta = self._metadata.get(request.segment_id)
+            if meta is None or not self._speaker_is_selected(meta.speaker_id):
+                if self._pending.final_count == 0:
+                    self._translation_idle.set()
+                continue
             request = replace(request, confirmed_context=self._context_for(request))
             try:
                 result = await self._run_translation(self._translator.translate, request)
@@ -476,7 +570,8 @@ class LiveSession:
                 self.gate.generation,
             ):
                 revision = self._revisions.get(request.segment_id)
-                if revision is not None and revision.apply_translation(
+                meta = self._metadata.get(request.segment_id)
+                if revision is not None and meta is not None and self._speaker_is_selected(meta.speaker_id) and revision.apply_translation(
                     source_revision=request.source_revision,
                     translated_source_text=request.source_text.strip(),
                     target_text=target,
@@ -490,6 +585,11 @@ class LiveSession:
                             pair=ContextPair(request.source_text, target),
                         ))
                     await self._emit_subtitle(request.segment_id)
+                    if is_final:
+                        # The emitted record is complete; only recent confirmed pairs
+                        # are needed for later translation context.
+                        self._revisions.pop(request.segment_id, None)
+                        self._metadata.pop(request.segment_id, None)
             if self._pending.final_count == 0:
                 self._translation_idle.set()
 
@@ -534,14 +634,60 @@ class LiveSession:
         await self._state("paused", "audio queue filled")
 
     async def _run_asr(self, fn: Callable, *args, **kwargs):
-        return await asyncio.get_running_loop().run_in_executor(
-            self._asr_executor, partial(fn, *args, **kwargs)
-        )
+        return await self._run_model(self._asr_executor, "asr", fn, *args, **kwargs)
 
     async def _run_translation(self, fn: Callable, *args, **kwargs):
-        return await asyncio.get_running_loop().run_in_executor(
-            self._translation_executor, partial(fn, *args, **kwargs)
-        )
+        return await self._run_model(self._translation_executor, "translation", fn, *args, **kwargs)
+
+    async def _run_model(self, executor: ThreadPoolExecutor, kind: str, fn: Callable, *args, **kwargs):
+        loop = asyncio.get_running_loop()
+        if self._model_observer is None:
+            call = partial(self._call_model, fn, *args, **kwargs)
+        else:
+            request = args[0] if args and isinstance(args[0], TranslationRequest) else None
+            call = partial(
+                self._call_model_measured, loop, kind, fn, time.perf_counter(),
+                request.session_id if request is not None else self.gate.session_id,
+                request.generation if request is not None else self.gate.generation,
+                request.segment_id if request is not None else None,
+                request.source_revision if request is not None else None,
+                *args, **kwargs,
+            )
+        return await loop.run_in_executor(executor, call)
+
+    def _call_model(self, fn: Callable, *args, **kwargs):
+        with self._model_lock:
+            return fn(*args, **kwargs)
+
+    def _call_model_measured(
+        self, loop: asyncio.AbstractEventLoop, kind: str, fn: Callable,
+        submitted_at: float, session_id: str | None, generation: int,
+        segment_id: str | None, source_revision: int | None, *args, **kwargs,
+    ):
+        worker_started_at = time.perf_counter()
+        error_type = None
+        with self._model_lock:
+            model_started_at = time.perf_counter()
+            try:
+                return fn(*args, **kwargs)
+            except BaseException as error:
+                error_type = type(error).__name__
+                raise
+            finally:
+                timing = ModelCallTiming(
+                    kind, getattr(fn, "__name__", type(fn).__name__),
+                    session_id, generation, segment_id, source_revision,
+                    submitted_at, worker_started_at, model_started_at,
+                    time.perf_counter(), error_type,
+                )
+                # A cancelled coroutine can leave its actual worker running.
+                # Deliver its record on the event loop without letting an
+                # observer exception change the model result or lock lifetime.
+                try:
+                    loop.call_soon_threadsafe(self._model_observer, timing)
+                except RuntimeError:
+                    if not loop.is_closed():
+                        raise
 
     @staticmethod
     def _rms(pcm16: bytes) -> float:

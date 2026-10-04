@@ -18,6 +18,7 @@ class SourceUpdate:
     source_text: str
     source_revision: int
     source_final: bool
+    speaker_id: str | None = None
 
 
 class Segmenter:
@@ -33,6 +34,7 @@ class Segmenter:
         self._revision = 0
         self._text = ""
         self._start_ms = 0
+        self._speaker_id: str | None = None
 
     @property
     def active_text(self) -> str:
@@ -42,7 +44,7 @@ class Segmenter:
     def active_start_ms(self) -> int:
         return self._start_ms
 
-    def apply(self, event: ASREvent) -> SourceUpdate | None:
+    def apply(self, event: ASREvent, *, speaker_id: str | None = None) -> SourceUpdate | None:
         text = event.text.strip() or (self._text if event.final else "")
         if not text:
             return None
@@ -50,6 +52,7 @@ class Segmenter:
             return None
         if self._revision == 0:
             self._start_ms = event.start_ms
+            self._speaker_id = speaker_id
         self._revision += 1
         self._text = text
         update = SourceUpdate(
@@ -64,10 +67,12 @@ class Segmenter:
             source_text=text,
             source_revision=self._revision,
             source_final=event.final,
+            speaker_id=self._speaker_id,
         )
         self._event_sequence += 1
         if event.final:
             self._segment_index += 1
             self._revision = 0
             self._text = ""
+            self._speaker_id = None
         return update

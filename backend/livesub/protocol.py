@@ -17,6 +17,7 @@ class AudioFrame:
     sample_rate: int
     channels: int
     pcm16: bytes
+    speaker_id: str | None = None
 
     def valid(self) -> bool:
         return (
@@ -28,6 +29,7 @@ class AudioFrame:
             and self.channels == 1
             and 0 < len(self.pcm16) <= FRAME_SAMPLES * 2
             and len(self.pcm16) % 2 == 0
+            and (self.speaker_id is None or self.speaker_id in {"A", "B", "C", "D", "E"})
         )
 
     @property

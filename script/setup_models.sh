@@ -10,7 +10,6 @@ fi
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 support_root="$HOME/Library/Application Support/LiveSub"
 app_backend="$repo_root/dist/LiveSub.app/Contents/Resources/backend"
-runtime_root="$support_root/runtime/Confucius4-R2T2-26d55a54ce5670cff9947a167d8ed95d569fd4d9"
 app_python="$support_root/backend/.venv/bin/python3"
 
 if [[ "$(uname -s)" != Darwin || "$(uname -m)" != arm64 ]]; then
@@ -29,30 +28,31 @@ if pgrep -x LiveSub >/dev/null; then
     echo "Quit LiveSub before preparing or replacing its runtime and application." >&2
     exit 1
 fi
+if [[ -z "${LIVESUB_SIGNING_IDENTITY:-}" ]]; then
+    echo "Set LIVESUB_SIGNING_IDENTITY to a valid code-signing certificate SHA-1 before setup." >&2
+    exit 1
+fi
 
 mkdir -p "$support_root/backend"
-echo "[1/6] Prepare locked Python 3.12 development environment"
+echo "[1/5] Prepare locked Python 3.12 development environment"
 uv sync --project "$repo_root/backend" --locked --python 3.12
 
-echo "[2/6] Build pinned Apple Silicon R2T2 native runtime (Metal)"
-"$repo_root/script/build_r2t2_native.sh"
-
-echo "[3/6] Prepare pinned R2T2 GGUF/projector and processor assets (~1.4 GB)"
+echo "[2/5] Prepare pinned Qwen3-ASR-1.7B recognition weights"
 PYTHONPATH="$repo_root/backend" \
-    "$repo_root/backend/.venv/bin/python" -m livesub.asr.download_model
+    "$repo_root/backend/.venv/bin/python" -m livesub.asr.download_qwen
 
-echo "[4/6] Prepare pinned local Qwen translation weights (~2.3 GB)"
+echo "[3/5] Prepare pinned local Qwen translation weights (~2.3 GB)"
 PYTHONPATH="$repo_root/backend" \
     "$repo_root/backend/.venv/bin/python" -m livesub.translation.download_model
 
-echo "[5/6] Build and ad hoc sign personal LiveSub.app"
+echo "[4/5] Build and sign personal LiveSub.app with the configured identity"
 "$repo_root/script/build_and_run.sh" --build-only
 
-echo "[6/6] Install locked application Python environment in Application Support"
+echo "[5/5] Install locked application Python environment in Application Support"
 UV_PROJECT_ENVIRONMENT="$support_root/backend/.venv" \
     uv sync --project "$app_backend" --locked --no-dev --python 3.12
-PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$app_backend:$runtime_root" \
-    "$app_python" -c 'from livesub.asr.r2t2 import R2T2ASREngine; from livesub.translation.mlx_engine import MLXTranslator; from livesub.server import main; print("LiveSub packaged backend imports OK")'
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$app_backend" \
+    "$app_python" -c 'from livesub.asr.qwen import QwenASREngine; from livesub.translation.mlx_engine import MLXTranslator; from livesub.server import main; print("LiveSub packaged backend imports OK")'
 
 echo "Local setup complete. Open $repo_root/dist/LiveSub.app"
 echo "macOS microphone or screen recording permission is requested only when you start that source."

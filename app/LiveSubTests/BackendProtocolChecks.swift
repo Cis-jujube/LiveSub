@@ -113,18 +113,31 @@ struct BackendProtocolChecks {
         precondition(audioJSON["start_sample"] as? Int == 10_240)
         precondition(Data(base64Encoded: audioJSON["pcm16"] as? String ?? "") == samples)
 
+        let labeled = AudioFrame(
+            sessionID: "session-1", generation: 3, sequence: 5,
+            startSample: 10_242, pcm16: samples, speakerID: "C"
+        )
+        let labeledJSON = try object(JSONEncoder().encode(BackendCommand.audio(labeled)))
+        precondition(labeledJSON["speaker_id"] as? String == "C")
+        let selection = try object(JSONEncoder().encode(BackendCommand(
+            kind: "select_speakers", sessionID: "session-1", generation: 3,
+            speakerIDs: ["A", "C"]
+        )))
+        precondition(selection["speaker_ids"] as? [String] == ["A", "C"])
+
         let event = try JSONDecoder().decode(BackendEvent.self, from: Data("""
         {"kind":"subtitle","segment":{
           "session_id":"session-1","generation":3,"segment_id":"seg-1","sequence":1,
           "start_ms":100,"end_ms":400,"source_language":"en","target_language":"zh",
           "source_text":"hello","source_revision":2,"source_final":true,
           "target_text":"你好","translated_source_text":"hello",
-          "translated_source_revision":2,"translation_state":"final"}}
+          "translated_source_revision":2,"translation_state":"final","speaker_id":"C"}}
         """.utf8))
         precondition(event.kind == "subtitle")
         precondition(event.segment?.translatedSourceText == "hello")
         precondition(event.segment?.translatedSourceRevision == 2)
         precondition(event.segment?.targetText == "你好")
+        precondition(event.segment?.speakerID == "C")
 
         let state = try JSONDecoder().decode(BackendEvent.self, from: Data(
             #"{"kind":"state","session_id":"session-1","generation":3,"state":"listening","detail":null}"#.utf8

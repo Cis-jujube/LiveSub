@@ -1,5 +1,7 @@
 import AVFoundation
 import Foundation
+import ScreenCaptureKit
+import SpeakerKit
 @testable import LiveSubAudio
 
 /// Standalone checks because this machine's Command Line Tools omit XCTest and TestingMacros.
@@ -11,7 +13,81 @@ enum AudioPipelineTests {
         try stereoDownmixAndPCM16LittleEndian()
         try sustainedChunksKeepExactSampleTimeline()
         try await boundedQueueReportsOverflow()
-        print("AudioPipelineChecks: 5 passed")
+        try screenCaptureErrorsUseTheSystemCode()
+        try await speakerBatchesKeepAudioAndBoundLatency()
+        print("AudioPipelineChecks: 7 passed")
+    }
+
+    @MainActor static func speakerBatchesKeepAudioAndBoundLatency() async throws {
+        var windows: [[Float]] = []
+        let detector = SpeakerDetectionService { samples in
+            windows.append(samples)
+            return DiarizationResult(speakerCount: 1, totalFrames: samples.count, frameRate: 16_000,
+                segments: [SpeakerSegment(speaker: .speakerId(0), startFrame: 0,
+                                          endFrame: samples.count, frameRate: 16_000)],
+                speakerCentroidEmbeddings: [0: [1, 0]])
+        }
+        var delivered: [AudioFrame] = []
+        var batchSizes: [Int] = []
+        var originals: [AudioFrame] = []
+        for index in 0..<30 {
+            let frame = AudioFrame(sessionID: "speaker-check", generation: 1, sequence: UInt64(index),
+                                   startSample: UInt64(index * 2560), pcm16: Data(repeating: 2, count: 5120))
+            originals.append(frame)
+            let batch = try await detector.consume(frame)
+            if !batch.frames.isEmpty { batchSizes.append(batch.frames.count) }
+            delivered += batch.frames
+        }
+        try expect(batchSizes == [13, 5, 5, 5], "first output at 2.08 s, then every 0.8 s")
+        delivered += try await detector.finish().frames
+        try expect(delivered.map(\.sequence) == originals.map(\.sequence), "no dropped or duplicate frames")
+        try expect(delivered.map(\.pcm16) == originals.map(\.pcm16), "speaker detection preserves PCM")
+        try expect(delivered.map(\.startSample) == originals.map(\.startSample), "speaker detection preserves timeline")
+        try expect(delivered.allSatisfy { $0.speakerID == "A" }, "speaker identity survives windows and final tail")
+        try expect(windows.allSatisfy { $0.count <= 3 * 16000 + 5 * 2560 }, "history stays bounded while batches shrink")
+        try expect(try await detector.finish().frames.isEmpty, "finish emits each frame once")
+        detector.beginGeneration(2)
+        let next = AudioFrame(sessionID: "speaker-check", generation: 2, sequence: 0,
+                              startSample: 0, pcm16: Data(repeating: 3, count: 5120))
+        try expect(try await detector.consume(next).frames.isEmpty, "a new generation warms its own window")
+        let tail = try await detector.finish().frames
+        try expect(tail == [next], "short new generation cannot reuse old context or labels")
+    }
+
+    static func screenCaptureErrorsUseTheSystemCode() throws {
+        func classify(
+            _ code: Int, preflight: Bool, requestGranted: Bool? = nil, domain: String = SCStreamErrorDomain
+        ) -> AudioCaptureError {
+            SystemAudioCapture.captureError(
+                NSError(domain: domain, code: code), stage: "discover displays", preflightAuthorized: preflight,
+                permissionRequestGranted: requestGranted
+            )
+        }
+
+        guard case .screenRecordingDenied(let deniedDetail) = classify(
+            SCStreamError.userDeclined.rawValue, preflight: false, requestGranted: false
+        ) else {
+            throw TestError.failed("explicit permission refusal must be classified as permission error")
+        }
+        try expect(deniedDetail.contains("preflight=false") && deniedDetail.contains("request=not-granted")
+                   && deniedDetail.contains("stage=discover displays"),
+                   "permission diagnostics retain stage, preflight, and request result")
+
+        guard case .screenCaptureMissingEntitlements = classify(SCStreamError.missingEntitlements.rawValue, preflight: false) else {
+            throw TestError.failed("missing entitlement must have its own classification")
+        }
+        guard case .screenCaptureStartFailed(let startDetail) = classify(SCStreamError.failedToStart.rawValue, preflight: false) else {
+            throw TestError.failed("failed stream start is not a permission refusal when preflight is false")
+        }
+        try expect(startDetail.contains("code=-3802") && startDetail.contains("bundle="),
+                   "startup diagnostics retain error code and app identity")
+
+        guard case .screenCaptureStartFailed = classify(SCStreamError.failedToStartAudioCapture.rawValue, preflight: true) else {
+            throw TestError.failed("audio service start failure is distinct from permission refusal")
+        }
+        guard case .screenCaptureFailed = classify(-42, preflight: false, domain: "other.service") else {
+            throw TestError.failed("unrelated errors must not become permission errors")
+        }
     }
 
     static func stereo48kConvertsToMono16kWithExactDurationAndFraming() throws {

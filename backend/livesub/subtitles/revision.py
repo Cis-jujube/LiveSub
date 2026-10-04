@@ -14,13 +14,27 @@ class SegmentRevisionState:
     translation_state: str = "pending"
     source_snapshots: dict[int, str] = field(default_factory=dict)
 
+    def skip_translation(self) -> None:
+        self.translated_source_text = ""
+        self.translated_source_revision = 0
+        self.target_text = ""
+        self.translation_state = "skipped"
+
+    def request_translation(self) -> None:
+        if self.translation_state == "skipped":
+            self.translation_state = "pending"
+
     def apply_source(self, revision: int, text: str, *, final: bool) -> bool:
         if self.source_final or revision <= self.source_revision or not text.strip():
             return False
         self.source_revision = revision
         self.source_text = text
         self.source_final = final
-        self.source_snapshots[revision] = text
+        if final:
+            # Older previews cannot be accepted after the source is final.
+            self.source_snapshots = {revision: text}
+        else:
+            self.source_snapshots[revision] = text
         return True
 
     def apply_translation(

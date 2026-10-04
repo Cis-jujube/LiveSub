@@ -14,11 +14,19 @@ final class SystemAudioCapture: NSObject, NativeAudioCapture, SCStreamOutput, SC
 
     @MainActor
     func start() async throws {
+        let permissionRequestGranted: Bool?
+        if CGPreflightScreenCaptureAccess() {
+            permissionRequestGranted = nil
+        } else {
+            // A first request needs an explicit system prompt. The grant may require
+            // relaunching LiveSub, so still let ScreenCaptureKit report the result.
+            permissionRequestGranted = CGRequestScreenCaptureAccess()
+        }
         let content: SCShareableContent
         do {
             content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
         } catch {
-            throw Self.captureError(error, stage: "discover displays")
+            throw Self.captureError(error, stage: "discover displays", permissionRequestGranted: permissionRequestGranted)
         }
         let displayID = (NSScreen.main?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value
         guard let display = content.displays.first(where: { $0.displayID == displayID }) ?? content.displays.first else {
@@ -32,11 +40,15 @@ final class SystemAudioCapture: NSObject, NativeAudioCapture, SCStreamOutput, SC
         configuration.channelCount = 2
 
         let stream = SCStream(filter: filter, configuration: configuration, delegate: self)
-        try stream.addStreamOutput(self, type: .audio, sampleHandlerQueue: callbackQueue)
+        do {
+            try stream.addStreamOutput(self, type: .audio, sampleHandlerQueue: callbackQueue)
+        } catch {
+            throw Self.captureError(error, stage: "attach audio output", permissionRequestGranted: permissionRequestGranted)
+        }
         do {
             try await stream.startCapture()
         } catch {
-            throw Self.captureError(error, stage: "start stream")
+            throw Self.captureError(error, stage: "start stream", permissionRequestGranted: permissionRequestGranted)
         }
         self.stream = stream
     }
@@ -103,15 +115,40 @@ final class SystemAudioCapture: NSObject, NativeAudioCapture, SCStreamOutput, SC
     }
 
     nonisolated func stream(_ stream: SCStream, didStopWithError error: any Error) {
-        pipeline.fail(error)
+        pipeline.fail(Self.captureError(error, stage: "stream stopped"))
     }
 
-    private nonisolated static func captureError(_ error: Error, stage: String) -> AudioCaptureError {
+    private nonisolated static func captureError(
+        _ error: Error, stage: String, permissionRequestGranted: Bool? = nil
+    ) -> AudioCaptureError {
+        captureError(error, stage: stage, preflightAuthorized: CGPreflightScreenCaptureAccess(),
+                     permissionRequestGranted: permissionRequestGranted)
+    }
+
+    // Accept the preflight result as data so error classification can be checked without
+    // querying TCC or starting a stream. A false preflight alone does not identify the error.
+    nonisolated static func captureError(
+        _ error: Error, stage: String, preflightAuthorized: Bool, permissionRequestGranted: Bool? = nil
+    ) -> AudioCaptureError {
         let value = error as NSError
-        let detail = "\(stage): \(value.domain) \(value.code)"
-        if !CGPreflightScreenCaptureAccess() {
-            return .screenRecordingDenied(detail)
+        let bundle = Bundle.main
+        let requestResult = permissionRequestGranted.map { $0 ? "granted" : "not-granted" } ?? "not-requested"
+        let detail = "stage=\(stage); domain=\(value.domain); code=\(value.code); "
+            + "preflight=\(preflightAuthorized); request=\(requestResult); bundle=\(bundle.bundleIdentifier ?? "unknown"); "
+            + "version=\(bundle.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"); "
+            + "app=\(bundle.bundleURL.path)"
+        guard value.domain == SCStreamErrorDomain else {
+            return .screenCaptureFailed(detail)
         }
-        return .screenCaptureFailed(detail)
+        switch value.code {
+        case SCStreamError.userDeclined.rawValue:
+            return .screenRecordingDenied(detail)
+        case SCStreamError.missingEntitlements.rawValue:
+            return .screenCaptureMissingEntitlements(detail)
+        case SCStreamError.failedToStart.rawValue, SCStreamError.failedToStartAudioCapture.rawValue:
+            return .screenCaptureStartFailed(detail)
+        default:
+            return .screenCaptureFailed(detail)
+        }
     }
 }

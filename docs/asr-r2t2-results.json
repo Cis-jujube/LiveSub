@@ -1,0 +1,95 @@
+{
+  "engine": "r2t2",
+  "cases": [
+    {
+      "id": "zh-qwen-public",
+      "hypothesis": "甚至出现交易几乎停滞的情况。",
+      "segments": [
+        "甚至出现交易几乎停滞的情况。"
+      ],
+      "compute_seconds": 2.517,
+      "load_seconds": 3.115,
+      "audio_seconds": 4.204,
+      "language": "Chinese",
+      "kind": "public-recording",
+      "reference": "甚至出现交易几乎停滞的情况。",
+      "errors": 0,
+      "reference_units": 13,
+      "error_rate": 0.0,
+      "real_time_factor": 0.599
+    },
+    {
+      "id": "en-tech-tts",
+      "hypothesis": "An AI agent can use tools. The language model has a context window. Each input token Has a cost. The AI agent must not delete the files.",
+      "segments": [
+        "An AI agent can use tools. The language model has a context window. Each input token",
+        "Has a cost. The AI agent must not delete the files."
+      ],
+      "compute_seconds": 6.23,
+      "load_seconds": 0.432,
+      "audio_seconds": 10.01,
+      "language": "English",
+      "kind": "synthetic",
+      "reference": "An AI agent can use tools. The language model has a context window. Each input token has a cost. The AI agent must not delete the files.",
+      "errors": 0,
+      "reference_units": 27,
+      "error_rate": 0.0,
+      "real_time_factor": 0.622
+    },
+    {
+      "id": "zh-tech-tts",
+      "hypothesis": "这个人工智能智能体使用检索增强生成分析智信区间和 样本量，请保留英文的token和api。",
+      "segments": [
+        "这个人工智能智能体使用检索增强生成分析智信区间和",
+        "样本量，请保留英文的token和api。"
+      ],
+      "compute_seconds": 6.285,
+      "load_seconds": 0.439,
+      "audio_seconds": 10.366,
+      "language": "Chinese",
+      "kind": "synthetic",
+      "reference": "这个人工智能智能体使用检索增强生成，分析置信区间和样本量。请保留英文的 token 和 API。",
+      "errors": 1,
+      "reference_units": 42,
+      "error_rate": 0.0238,
+      "real_time_factor": 0.606
+    },
+    {
+      "id": "en-finance-tts",
+      "hypothesis": "The central bank raised interest rates by 25 basis points, a higher sharp ratio does not Guarantee higher returns. The token is not a security token.",
+      "segments": [
+        "The central bank raised interest rates by 25 basis points, a higher sharp ratio does not",
+        "Guarantee higher returns. The token is not a security token."
+      ],
+      "compute_seconds": 6.191,
+      "load_seconds": 0.429,
+      "audio_seconds": 10.145,
+      "language": "English",
+      "kind": "synthetic",
+      "reference": "The central bank raised interest rates by twenty five basis points. A higher Sharpe ratio does not guarantee higher returns. The token is not a security token.",
+      "errors": 3,
+      "reference_units": 27,
+      "error_rate": 0.1111,
+      "real_time_factor": 0.61
+    },
+    {
+      "id": "zh-finance-tts",
+      "hypothesis": "这家公司的市盈率是二十八倍，现金流下降了百分之三，我们用 一起学习预测波动率，但不能保证收益。",
+      "segments": [
+        "这家公司的市盈率是二十八倍，现金流下降了百分之三，我们用",
+        "一起学习预测波动率，但不能保证收益。"
+      ],
+      "compute_seconds": 6.031,
+      "load_seconds": 0.44,
+      "audio_seconds": 9.89,
+      "language": "Chinese",
+      "kind": "synthetic",
+      "reference": "这家公司的市盈率是二十八倍，现金流下降了百分之三。我们用机器学习预测波动率，但不能保证收益。",
+      "errors": 2,
+      "reference_units": 42,
+      "error_rate": 0.0476,
+      "real_time_factor": 0.61
+    }
+  ],
+  "overall_error_rate": 0.0397
+}

@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import socket
+from threading import Lock
 from typing import Callable
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -39,6 +40,7 @@ def _parse_audio(message: dict) -> AudioFrame:
         sample_rate=message["sample_rate"],
         channels=message["channels"],
         pcm16=data,
+        speaker_id=message.get("speaker_id"),
     )
     if not frame.valid():
         raise ValueError("audio frame format must be 16 kHz mono PCM16, at most 2560 samples")
@@ -69,6 +71,9 @@ def create_app(
         raise ValueError("backend token must not be empty")
     app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
     active = False
+    # A timed-out model worker may survive its socket. Reconnecting sessions
+    # must retain the same GPU ownership until that worker actually finishes.
+    model_lock = Lock()
 
     @app.websocket("/ws")
     async def websocket_endpoint(websocket: WebSocket) -> None:
@@ -110,7 +115,10 @@ def create_app(
                             raise ValueError("unsupported translation direction")
                         if session is None:
                             language = "English" if source_language == "en" else "Chinese"
-                            session = LiveSession(asr_builder(language), translator_builder(), emit)
+                            session = LiveSession(
+                                asr_builder(language), translator_builder(), emit,
+                                model_lock=model_lock,
+                            )
                         if not await session.start(session_id, generation, source_language, target_language):
                             if not session.is_duplicate_start(session_id, generation, source_language, target_language):
                                 await emit({"kind": "error", "code": "control_rejected", "detail": "start does not match the current session state"})
@@ -140,6 +148,15 @@ def create_app(
                         identity = _control_identity(message)
                         if session is None or identity != (session.gate.session_id, session.gate.generation) or not await session.stop():
                             await emit({"kind": "error", "code": "control_rejected", "detail": "stop does not match the active session"})
+                    elif kind == "select_speakers":
+                        identity = _control_identity(message)
+                        if session is None or identity != (session.gate.session_id, session.gate.generation) or session.gate.state not in {"listening", "paused"}:
+                            await emit({"kind": "error", "code": "control_rejected", "detail": "speaker selection does not match the active session"})
+                        else:
+                            speaker_ids = message.get("speaker_ids")
+                            if speaker_ids is not None and not isinstance(speaker_ids, list):
+                                raise ValueError("speaker_ids must be an array or null")
+                            await session.select_speakers(speaker_ids)
                     else:
                         await emit({"kind": "error", "code": "unknown_command", "detail": "unsupported command kind"})
                 except (KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
@@ -177,16 +194,22 @@ async def _serve() -> None:
     ))
 
     def build_asr(language: str) -> ASREngine:
-        from livesub.asr.r2t2 import R2T2ASREngine
+        from livesub.asr.qwen import QwenASREngine
 
-        return R2T2ASREngine.from_local_files(
-            gguf_dir=root / "r2t2", processor_dir=root / "r2t2/processor", language=language
-        )
+        return QwenASREngine.from_local_files(root / "Qwen3-ASR-1.7B", language=language)
 
     def build_translator() -> Translator:
         from livesub.translation.mlx_engine import MLXTranslator
 
-        return MLXTranslator(model_path=root / "Qwen3-4B-Instruct-2507-4bit")
+        model = root / "Qwen3-4B-Instruct-2507-4bit"
+        qwen = MLXTranslator(model_path=model)
+        helper = os.environ.get("LIVESUB_NATIVE_TRANSLATOR")
+        if not helper:
+            return qwen
+        from livesub.translation.apple_engine import AppleTranslator
+        from livesub.translation.local_engine import LocalTranslator
+
+        return LocalTranslator(qwen, AppleTranslator(Path(helper), model))
 
     app = create_app(build_asr, build_translator, token=token)
     listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

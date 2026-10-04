@@ -1,0 +1,14 @@
+[
+  {"id":"en-finance-1","source_language":"en","text":"The central bank raised interest rates by 25 basis points."},
+  {"id":"en-finance-2","source_language":"en","text":"The Sharpe ratio fell although returns rose."},
+  {"id":"en-security","source_language":"en","text":"The access token expired; do not confuse it with a security token."},
+  {"id":"en-negation","source_language":"en","text":"The customer brought their own wine, and we neither charged a corkage fee nor prohibited them from drinking it."},
+  {"id":"en-statistics","source_language":"en","text":"The p-value is 0.03, not 0.3."},
+  {"id":"en-time","source_language":"en","text":"We have 3.5 hours left."},
+  {"id":"zh-negation","source_language":"zh","text":"之前有顾客自己带酒水也没加收钱或者不让喝。"},
+  {"id":"zh-ai-data","source_language":"zh","text":"这个人工智能智能体使用检索增强生成，分析置信区间和样本量。"},
+  {"id":"zh-numbers","source_language":"zh","text":"成本下降了 12%，不是 21%。"},
+  {"id":"zh-quant","source_language":"zh","text":"量化策略的回测收益不能保证未来表现。"},
+  {"id":"zh-finance","source_language":"zh","text":"公司现金流下降了百分之三，但市盈率升到二十八倍。"},
+  {"id":"zh-token","source_language":"zh","text":"这个 token 是身份验证用的，不是区块链代币。"}
+]

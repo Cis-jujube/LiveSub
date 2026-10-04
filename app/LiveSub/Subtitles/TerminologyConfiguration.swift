@@ -17,11 +17,42 @@ public struct TerminologyEntry: Codable, Equatable, Sendable {
 }
 
 public struct TerminologyConfiguration: Codable, Equatable, Sendable {
-    public var version: Int = 1
-    public var profile: String = "ai"
+    public static let availableDomains = ["ai", "software", "data", "finance", "quant", "blockchain"]
+
+    public var version: Int = 2
+    public var domains: [String] = ["ai"]
     public var entries: [TerminologyEntry] = []
+    public var profile: String { domains.contains("ai") ? "ai" : "general" }
 
     public init() {}
+
+    private enum CodingKeys: String, CodingKey { case version, profile, domains, entries }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let diskVersion = try container.decode(Int.self, forKey: .version)
+        entries = try container.decode([TerminologyEntry].self, forKey: .entries)
+        switch diskVersion {
+        case 1:
+            let legacyProfile = try container.decode(String.self, forKey: .profile)
+            guard ["ai", "general"].contains(legacyProfile) else {
+                throw TerminologyError.invalid("旧版术语领域无效。")
+            }
+            domains = legacyProfile == "ai" ? ["ai"] : []
+        case 2:
+            domains = try container.decode([String].self, forKey: .domains)
+        default:
+            throw TerminologyError.invalid("术语配置版本无效。")
+        }
+        version = 2
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(version, forKey: .version)
+        try container.encode(domains, forKey: .domains)
+        try container.encode(entries, forKey: .entries)
+    }
 
     public static var fileURL: URL {
         FileManager.default.homeDirectoryForCurrentUser
@@ -29,7 +60,10 @@ public struct TerminologyConfiguration: Codable, Equatable, Sendable {
     }
 
     public func validatedData() throws -> Data {
-        guard version == 1, ["ai", "general"].contains(profile) else {
+        guard version == 2,
+              domains.count <= Self.availableDomains.count,
+              Set(domains).count == domains.count,
+              domains.allSatisfy(Self.availableDomains.contains) else {
             throw TerminologyError.invalid("术语配置版本或领域无效。")
         }
         guard entries.count <= 100 else { throw TerminologyError.invalid("自定义术语最多 100 条。") }

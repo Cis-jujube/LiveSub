@@ -1,7 +1,7 @@
 import Foundation
 
 public enum TranslationState: String, Codable, Sendable {
-    case pending, preview, final, failed
+    case pending, preview, final, failed, skipped
 }
 
 /// One row contains both languages. A translated source snapshot accompanies every target.
@@ -21,6 +21,7 @@ public struct SubtitleSegment: Codable, Identifiable, Equatable, Sendable {
     public var translatedSourceText: String
     public var translatedSourceRevision: UInt64
     public var translationState: TranslationState
+    public var speakerId: String?
 
     public var id: String { "\(sessionId):\(generation):\(segmentId)" }
     public var translationIsCurrent: Bool {
@@ -29,6 +30,12 @@ public struct SubtitleSegment: Codable, Identifiable, Equatable, Sendable {
         !targetText.isEmpty &&
         (translationState == .preview || translationState == .final)
     }
+}
+
+public struct SpeakerSummary: Identifiable, Equatable, Sendable {
+    public let id: String
+    public let recentText: String
+    public let isSpeaking: Bool
 }
 
 public struct CaptionPair: Equatable, Sendable {

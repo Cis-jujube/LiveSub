@@ -38,6 +38,27 @@ def test_reload_custom_override_direction_and_delete(tmp_path):
     assert terms.select("en", "AI agent", [])[0]["target"] == "AI Agent"
 
 
+def test_combinable_domains_and_legacy_profile(tmp_path):
+    path = tmp_path / "terms.json"
+    terms = Terminology(path)
+    path.write_text(json.dumps({"version": 2, "domains": ["ai", "data", "finance", "quant"], "entries": []}))
+    selected = terms.select("en", "An AI agent reports a confidence interval and Sharpe ratio in basis points.", [])
+    assert {term["source"] for term in selected} == {"AI agent", "confidence interval", "Sharpe ratio", "basis points"}
+    path.write_text(json.dumps({"version": 2, "domains": ["finance"], "entries": []}))
+    assert terms.select("en", "AI agent and basis points", []) == [{"source": "basis points", "target": "基点"}]
+    path.write_text(json.dumps(settings(profile="ai")))
+    assert terms.select("en", "AI agent", [])[0]["target"] == "AI Agent"
+    assert terms.select("zh", "使用检索、增强、生成、分析置信区间。", []) == [
+        {"source": "检索、增强、生成", "target": "retrieval-augmented generation"}
+    ]
+
+
+@pytest.mark.parametrize("domains", [["ai", "ai"], ["unknown"], "ai", [1], ["ai"] * 7])
+def test_invalid_domain_selection(domains):
+    with pytest.raises(ValueError):
+        parse_settings({"version": 2, "domains": domains, "entries": []})
+
+
 @pytest.mark.parametrize("value", [None, {}, settings([entry(source="")]), settings([entry(target="x" * 81)]), settings([entry(language="fr")]), settings([entry(source="a\nb")]), settings([entry()] * 101), {"version": True, "profile": "ai", "entries": []}, settings(profile="unknown")])
 def test_invalid_settings(value):
     with pytest.raises(ValueError):
@@ -57,14 +78,19 @@ def test_invalid_json_and_oversized_file_keep_last_good_and_warn(tmp_path, caplo
 
 
 def test_glossary_and_total_prompt_budgets(tmp_path):
+    import re
+
     engine, _, calls = translator(tmp_path)
+    engine.prepare()
+    # Count JSON structure as well as words, so this exercises a token budget
+    # independently of the payload's whitespace formatting.
+    engine._tokenizer.encode = lambda text, **_kwargs: re.findall(r"\w+|[^\w\s]", text)
     path = tmp_path / "terms.json"
     path.write_text(json.dumps(settings([entry(f"term{i}", "x" * 70) for i in range(100)], "general")))
     engine._terminology = Terminology(path)
     original_generator = engine._text_generator
     def record_prompt(model, tokenizer, prompt, **kwargs):
         original_generator(model, tokenizer, prompt, **kwargs)
-        import re
         current = json.loads(prompt.split("\nuser: ", 1)[1])["current_segment"]
         return " ".join(re.findall(r"__LS[0-9]+_[0-9]+__", current)) or "ok"
     engine._text_generator = record_prompt
@@ -180,3 +206,141 @@ def test_normalization_expansion_cannot_be_partially_replaced(tmp_path):
     assert len(spans) == 1
     protected = ProtectedTerms("¼", spans, [])
     assert protected.restore(protected.source) == "quarter"
+
+
+def test_unchanged_settings_reuse_file_read_and_matchers(tmp_path, monkeypatch):
+    from pathlib import Path
+
+    path = tmp_path / "terms.json"
+    path.write_text(json.dumps(settings([entry(target="智能体")])))
+    terms = Terminology(path)
+    reads = []
+    original_open = Path.open
+
+    def open_file(self, *args, **kwargs):
+        if self == path:
+            reads.append(self)
+        return original_open(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", open_file)
+    expected = [{"source": "AI agent", "target": "智能体"}]
+    assert terms.select("en", "AI agent", []) == expected
+    first_matchers = terms._matchers
+    for _ in range(3):
+        assert terms.select("en", "AI agent", []) == expected
+        assert terms._matchers is first_matchers
+    assert reads == [path]
+
+
+def test_atomic_replacement_same_size_and_mtime_refreshes_targets(tmp_path):
+    import os
+
+    path = tmp_path / "terms.json"
+    path.write_text(json.dumps(settings([entry(target="first")], "general")))
+    terms = Terminology(path)
+    assert terms.select("en", "AI agent", [])[0]["target"] == "first"
+    previous_metadata = path.stat()
+    replacement = tmp_path / "replacement.json"
+    replacement.write_text(json.dumps(settings([entry(target="other")], "general")))
+    os.utime(replacement, ns=(previous_metadata.st_atime_ns, previous_metadata.st_mtime_ns))
+    replacement.replace(path)
+    assert path.stat().st_size == previous_metadata.st_size
+    assert path.stat().st_mtime_ns == previous_metadata.st_mtime_ns
+    assert terms.select("en", "AI agent", [])[0]["target"] == "other"
+
+
+def test_invalid_file_is_cached_only_until_next_change(tmp_path, monkeypatch):
+    from pathlib import Path
+
+    path = tmp_path / "terms.json"
+    path.write_text(json.dumps(settings([entry(target="智能体")], "general")))
+    terms = Terminology(path)
+    expected = terms.select("en", "AI agent", [])
+    path.write_text("{")
+    reads = []
+    original_open = Path.open
+
+    def open_file(self, *args, **kwargs):
+        if self == path:
+            reads.append(self)
+        return original_open(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", open_file)
+    assert terms.select("en", "AI agent", []) == expected
+    assert terms.select("en", "AI agent", []) == expected
+    assert reads == [path]
+    path.write_text(json.dumps(settings([entry(target="助手")], "general")))
+    assert terms.select("en", "AI agent", [])[0]["target"] == "助手"
+
+
+def test_reviewed_software_terms_require_selected_domain_and_keep_word_boundaries(tmp_path):
+    path = tmp_path / "terms.json"
+    terms = Terminology(path)
+    source = "Observability for the service mesh and container orchestration enables continuous delivery."
+    assert terms.select("en", source, []) == []
+    path.write_text(json.dumps({"version": 2, "domains": ["software"], "entries": []}))
+    assert terms.select("en", source, []) == [
+        {"source": "observability", "target": "可观测性"},
+        {"source": "service mesh", "target": "服务网格"},
+        {"source": "container orchestration", "target": "容器编排"},
+        {"source": "continuous delivery", "target": "持续交付"},
+    ]
+    assert terms.select("en", "The load balancerservice and cloud container service", []) == []
+    assert terms.select("en", "Distributed systems depend on idempotence and a load balancer.", []) == [
+        {"source": "idempotence", "target": "幂等性"},
+        {"source": "load balancer", "target": "负载均衡器"},
+    ]
+    # Keep the subject visible to the model: protecting this phrase changed
+    # "failed for 0.03 seconds" from an outage into a failed test in a model A/B.
+    assert terms.select("en", "Distributed systems failed for 0.03 seconds.", []) == []
+
+
+@pytest.mark.parametrize(("source", "expected"), [
+    ("AI agent", "AI Agent"),
+    (" ＡＩ  agent. ", "AI Agent。"),
+    ("large language model?", "大语言模型？"),
+    ("context window !", "上下文窗口！"),
+])
+def test_standalone_english_term_skips_generation_and_preserves_identity(tmp_path, source, expected):
+    engine, _, calls = translator(tmp_path)
+    try:
+        result = engine.translate(request(source, source_revision=11))
+        assert result.target_text == expected
+        assert result.translated_source_text == source.strip()
+        assert result.session_id == "session-1" and result.generation == 2
+        assert result.segment_id == "segment-3" and result.source_revision == 11
+        assert calls == []
+    finally:
+        engine.close()
+
+
+@pytest.mark.parametrize("source", ["Not an AI agent.", "AI agent uses tools.", "AI agent and AI agent.", "AI agent..."])
+def test_english_sentences_and_unfinished_punctuation_still_require_generation(tmp_path, source):
+    engine, _, calls = translator(tmp_path)
+
+    def generate(_model, _tokenizer, prompt, **_kwargs):
+        calls.append(prompt)
+        return json.loads(prompt.split("\nuser: ", 1)[1])["current_segment"]
+
+    engine._text_generator = generate
+    try:
+        engine.translate(request(source))
+        assert len(calls) == 1
+    finally:
+        engine.close()
+
+
+def test_standalone_custom_term_reload_and_direction_remain_explicit(tmp_path):
+    path = tmp_path / "terms.json"
+    path.write_text(json.dumps(settings([entry("Jujube", "枣"), entry("枣", "Jujube", "zh")], "general")))
+    engine, _, calls = translator(tmp_path, "__LS0_0__")
+    engine._terminology = Terminology(path)
+    try:
+        assert engine.translate(request("Jujube")).target_text == "枣"
+        path.write_text(json.dumps(settings([entry("Jujube", "早早"), entry("枣", "Jujube", "zh")], "general")))
+        assert engine.translate(request("Jujube", source_revision=5)).target_text == "早早"
+        assert calls == []
+        assert engine.translate(request("枣", source_language="zh", target_language="en")).target_text == "Jujube"
+        assert len(calls) == 1
+    finally:
+        engine.close()

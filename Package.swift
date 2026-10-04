@@ -11,16 +11,20 @@ let package = Package(
         .library(name: "LiveSubBackend", targets: ["LiveSubBackend"]),
         .library(name: "LiveSubSubtitles", targets: ["LiveSubSubtitles"]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/argmaxinc/argmax-oss-swift.git", exact: "1.1.0"),
+    ],
     targets: [
         .executableTarget(
             name: "LiveSub",
             dependencies: ["LiveSubAudio", "LiveSubBackend", "LiveSubOverlay", "LiveSubSubtitles"],
             path: "app/LiveSub",
             exclude: ["Audio", "Backend", "Overlay", "Subtitles"],
-            sources: ["App/AppController.swift", "App/LiveSubApp.swift", "App/TerminologySettingsView.swift", "MainWindow/TranscriptView.swift"]
+            sources: ["App/AppController.swift", "App/LiveSubApp.swift", "App/TerminologySettingsView.swift", "App/Theme.swift", "MainWindow/TranscriptView.swift"]
         ),
         .target(
             name: "LiveSubAudio",
+            dependencies: [.product(name: "SpeakerKit", package: "argmax-oss-swift")],
             path: "app/LiveSub/Audio"
         ),
         .target(
